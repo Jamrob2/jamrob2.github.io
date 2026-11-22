@@ -553,6 +553,69 @@ Object.assign(PRICES,{'oyster sauce|tbsp':[30,4,1],'sliced almonds|g':[100,4],'v
 'sub buns|pc':[6,4],'beef gravy mix|pkg':[1,1.5],'creamed corn|can':[1,1.6],'sugar|tbsp':[150,4,1],'tart shells|pc':[12,4.5],'graham crumbs|g':[400,4.5],'cocoa powder|tbsp':[30,5,1],
 'custard powder|tbsp':[20,4,1],'icing sugar|g':[1000,4],'shredded coconut|g':[200,3.5],'baking soda|tsp':[100,2,1],'whipping cream|ml':[473,4.5],'brownie mix|pkg':[1,3.5]});
 
+// ---- Budget breakfasts, cheap meals & snacks ----
+const CHEAP=[
+{id:'e1',name:'Cereal & Milk',cat:'Breakfast',e:'🥣',serv:10,time:2,fridge:30,cal:260,p:11,c:44,f:5,cuisine:'Canadian',family:1,
+ ing:[['Breakfast cereal',400,'g','Pantry'],['Milk',2500,'ml','Dairy & Eggs']],
+ steps:['Pour about 40 g (1 cup) of cereal.','Add 250 ml (1 cup) milk.','Store-brand cereal is often half the price of name brands.']},
+{id:'e2',name:'Instant Oatmeal',cat:'Breakfast',e:'🥣',serv:5,time:3,fridge:30,cal:320,p:8,c:64,f:4,cuisine:'Canadian',family:1,
+ ing:[['Instant oatmeal packets',10,'pc','Pantry']],
+ steps:['Empty 2 packets into a bowl.','Add hot water or milk and stir.','Microwave 1 min if using milk.']},
+{id:'e3',name:'Peanut Butter Toast',cat:'Breakfast',e:'🍞',serv:6,time:5,fridge:7,cal:340,p:13,c:32,f:19,cuisine:'Canadian',family:1,
+ ing:[['Sandwich bread',12,'pc','Bakery'],['Peanut butter',180,'g','Pantry']],
+ steps:['Toast 2 slices.','Spread with 2 tbsp peanut butter.']},
+{id:'e4',name:'Bagel & Cream Cheese',cat:'Breakfast',e:'🥯',serv:6,time:5,fridge:5,cal:370,p:11,c:56,f:11,cuisine:'Canadian',family:1,
+ ing:[['Bagels',6,'pc','Bakery'],['Cream cheese',180,'g','Dairy & Eggs']],
+ steps:['Slice and toast a bagel.','Spread with cream cheese.']},
+{id:'e5',name:'Toaster Waffles & Syrup',cat:'Breakfast',e:'🧇',serv:4,time:5,fridge:60,cal:300,p:5,c:50,f:9,cuisine:'Canadian',family:1,
+ ing:[['Frozen waffles',8,'pc','Frozen'],['Pancake syrup',4,'tbsp','Pantry']],
+ steps:['Toast 2 waffles from frozen.','Drizzle with syrup.']},
+{id:'e6',name:'Eggs & Toast',cat:'Breakfast',e:'🍳',serv:6,time:10,fridge:7,cal:330,p:17,c:28,f:16,cuisine:'Canadian',family:1,
+ ing:[['Eggs',12,'pc','Dairy & Eggs'],['Sandwich bread',12,'pc','Bakery'],['Butter',3,'tbsp','Dairy & Eggs']],
+ steps:['Fry or scramble 2 eggs in a little butter.','Serve with 2 slices of buttered toast.']},
+{id:'f1',name:'Bean & Cheese Burritos',cat:'Lunch',e:'🌯',serv:8,time:25,fridge:4,cal:430,p:17,c:52,f:16,cuisine:'Classic',family:1,
+ ing:[['Large tortillas',8,'pc','Bakery'],['Refried beans',2,'can','Pantry'],['Cheddar block',200,'g','Dairy & Eggs'],['Salsa',250,'ml','Spices & Sauces']],
+ steps:['Warm the refried beans with a splash of salsa.','Spread on tortillas and top with grated cheese.','Roll tightly and wrap in foil.','Fridge 4 days or freeze; microwave 2 min from the fridge.']},
+{id:'f2',name:'Garlic Butter Parmesan Pasta',cat:'Lunch',e:'🍝',serv:4,time:15,fridge:4,cal:520,p:16,c:76,f:17,cuisine:'Italian',family:1,comfort:1,
+ ing:[['Pasta (dry)',400,'g','Pantry'],['Butter',4,'tbsp','Dairy & Eggs'],['Garlic',4,'clove','Produce'],['Parmesan',50,'g','Dairy & Eggs']],
+ steps:['Cook pasta; save a cup of pasta water.','Melt butter with minced garlic for 1 min.','Toss pasta with garlic butter, parmesan and a splash of pasta water.','Portion. Add leftover chicken if you have some.']},
+{id:'f3',name:'Ramen with Egg',cat:'Lunch',e:'🍜',serv:4,time:15,fridge:3,cal:450,p:18,c:52,f:18,cuisine:'Asian',family:1,
+ ing:[['Instant ramen',4,'pc','Pantry'],['Eggs',4,'pc','Dairy & Eggs'],['Frozen peas',200,'g','Frozen']],
+ steps:['Soft-boil eggs 7 min, then cool and peel.','Cook noodles with the peas; drain, keeping some broth if you like.','Toss with the seasoning packet.','Portion with a halved egg on top.']},
+{id:'f4',name:'Hot Dogs & Baked Beans',cat:'Dinner',e:'🌭',serv:4,time:15,fridge:4,cal:620,p:22,c:70,f:28,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Wieners',8,'pc','Meat & Fish'],['Hot dog buns',8,'pc','Bakery'],['Baked beans',2,'can','Pantry']],
+ steps:['Boil or grill the wieners 5 min.','Heat the beans.','Serve 2 hot dogs with a scoop of beans.']},
+{id:'f5',name:'Chili Mac',cat:'Dinner',e:'🌶️',serv:6,time:30,fridge:4,cal:520,p:30,c:62,f:16,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Lean ground beef',450,'g','Meat & Fish'],['Pasta (dry)',450,'g','Pantry'],['Kidney beans',1,'can','Pantry'],['Diced tomatoes',1,'can','Pantry'],['Chili powder',2,'tbsp','Spices & Sauces'],['Cheddar block',100,'g','Dairy & Eggs']],
+ steps:['Brown beef with chili powder.','Add tomatoes, beans, macaroni and 750 ml water.','Simmer 12 min, stirring, until pasta is tender.','Top with grated cheese and portion.']},
+{id:'f6',name:'Loaded Baked Potatoes',cat:'Dinner',e:'🥔',serv:4,time:60,fridge:4,cal:520,p:18,c:55,f:25,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Potatoes',1200,'g','Produce'],['Cheddar block',150,'g','Dairy & Eggs'],['Sour cream',250,'ml','Dairy & Eggs'],['Bacon',150,'g','Meat & Fish'],['Butter',2,'tbsp','Dairy & Eggs']],
+ steps:['Bake 4 large potatoes at 200°C / 400°F for 50–60 min (or microwave 10 min).','Crisp and crumble the bacon.','Split potatoes and top with butter, cheese, bacon and sour cream.','Store toppings separately and reheat potatoes.']},
+{id:'f7',name:'Breakfast for Supper',cat:'Dinner',e:'🥞',serv:4,time:25,fridge:4,cal:640,p:24,c:70,f:28,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Pancake mix',400,'g','Pantry'],['Eggs',4,'pc','Dairy & Eggs'],['Bacon',375,'g','Meat & Fish'],['Pancake syrup',6,'tbsp','Pantry']],
+ steps:['Make pancakes per the box.','Bake bacon at 200°C / 400°F for 15 min.','Fry or scramble the eggs.','Portion; syrup on the side.']},
+{id:'f8',name:'Smoked Sausage & Rice Skillet',cat:'Dinner',e:'🍚',serv:4,time:30,fridge:4,cal:560,p:22,c:60,f:25,cuisine:'Canadian',family:1,
+ ing:[['Kielbasa',500,'g','Meat & Fish'],['Rice (dry)',300,'g','Pantry'],['Diced tomatoes',1,'can','Pantry'],['Chicken broth',500,'ml','Pantry'],['Onion',1,'pc','Produce']],
+ steps:['Brown sliced sausage and onion.','Add rice, tomatoes and broth; cover and simmer 18 min.','Fluff and portion.']},
+{id:'f9',name:'Pita Pizzas',cat:'Dinner',e:'🍕',serv:4,time:20,fridge:4,cal:560,p:28,c:56,f:24,cuisine:'Canadian',family:1,
+ ing:[['Pita bread',4,'pc','Bakery'],['Pizza sauce',200,'ml','Spices & Sauces'],['Mozzarella, shredded',200,'g','Dairy & Eggs'],['Pepperoni slices',100,'g','Meat & Fish']],
+ steps:['Spread sauce on pitas.','Top with mozzarella and pepperoni.','Bake at 220°C / 425°F for 8–10 min.','Cool and wrap; reheat in a pan or air fryer.']},
+{id:'f10',name:'BBQ Chicken Drumsticks & Rice',cat:'Dinner',e:'🍗',serv:4,time:45,fridge:4,cal:600,p:38,c:62,f:20,cuisine:'Canadian',family:1,
+ ing:[['Chicken drumsticks',1200,'g','Meat & Fish'],['Rice (dry)',300,'g','Pantry'],['BBQ sauce',120,'ml','Spices & Sauces']],
+ steps:['Bake drumsticks at 200°C / 400°F for 35 min.','Brush with BBQ sauce and bake 10 min more.','Cook rice.','Portion 2–3 drumsticks per serving.']},
+{id:'f11',name:'Granola Bars',cat:'Snack',e:'🍫',serv:6,time:1,fridge:60,cal:130,p:2,c:20,f:5,cuisine:'Canadian',family:1,
+ ing:[['Granola bars',6,'pc','Pantry']],steps:['Grab one. Buy the big box or store brand for the best price per bar.']},
+{id:'f12',name:'Yogurt Cups',cat:'Snack',e:'🥛',serv:8,time:1,fridge:14,cal:110,p:5,c:17,f:2,cuisine:'Canadian',family:1,
+ ing:[['Yogurt cups',8,'pc','Dairy & Eggs']],steps:['One cup per serving. The multi-pack is cheapest per cup.']},
+{id:'f13',name:'Homemade Popcorn',cat:'Snack',e:'🍿',serv:8,time:5,fridge:7,cal:150,p:3,c:18,f:8,cuisine:'Canadian',family:1,
+ ing:[['Popcorn kernels',200,'g','Pantry'],['Butter',3,'tbsp','Dairy & Eggs']],
+ steps:['Pop ¼ cup kernels at a time in a covered pot with a little oil, or in a paper bag in the microwave (2–3 min).','Toss with melted butter and salt.','Bag it in portions. Much cheaper than microwave packs.']}
+];
+BUILT.push(...CHEAP);
+Object.assign(PRICES,{'breakfast cereal|g':[525,5],'instant oatmeal packets|pc':[10,4],'bagels|pc':[6,4],'frozen waffles|pc':[8,3.5],'pancake syrup|tbsp':[50,4],
+'refried beans|can':[1,1.8],'instant ramen|pc':[5,3],'wieners|pc':[12,4],'hot dog buns|pc':[8,3.5],'baked beans|can':[1,1.5],'chicken drumsticks|g':[1500,9],
+'bbq sauce|ml':[455,3.5],'granola bars|pc':[6,3],'yogurt cups|pc':[16,6],'popcorn kernels|g':[900,4]});
+
 function defaultState(){return{v:2,goals:{cal:2200,p:160,c:220,f:70},people:1,prepDays:[6],plan:{},custom:[],checked:[],extras:[],
   budget:180,store:'avg',packs:true,prices:{},pantry:null,slots:['B','L','D','S'],onboarded:false,taste:{diet:'any',pref:{},never:''},rpref:{}}}
 let S=defaultState();
@@ -619,7 +682,7 @@ const vegDish=r=>/veg|salad|slaw/i.test(r.name);
 function isMain(r,i){return vegDish(r)||r.name.toLowerCase().includes(stem(i[0]))}
 function skipped(r){const np=noProd();if(!np.size)return[];return r.ing.filter(i=>np.has(i[0].toLowerCase())&&!isMain(r,i))}
 function mainProduce(r){const np=noProd();if(!np.size)return null;return r.ing.find(i=>np.has(i[0].toLowerCase())&&isMain(r,i))}
-function ingUsed(r){const sk=new Set(skipped(r));return r.ing.filter(i=>!sk.has(i))}
+function ingUsed(r){const sk=new Set(skipped(r));return r.ing.filter(i=>!sk.has(i)).map(swapIng)}
 const T=()=>S.taste||(S.taste={diet:'any',pref:{},never:''});
 function whyNot(r){
   const t=T(), pr=proteinsOf(r);
@@ -657,6 +720,7 @@ const GOALS=[
  ['family','🍝','Family favourites',r=>r.family||FAMILY.has(r.id)],
  ['comfort','🍲','Comfort food',r=>r.comfort||COMFORT.has(r.id)],
  ['batch','🍱','Batch cook',r=>r.fridge>=5||r.serv>=6||r.steps.some(s=>/freez/i.test(s))],
+ ['cheap','💰','Cheapest meals',r=>servCost(r)<=(r.cat==='Snack'||r.cat==='Dessert'?0.8:r.cat==='Breakfast'?1.5:3)],
  ['fewveg','🍖','Light on veggies',r=>ingUsed(r).filter(i=>i[3]==='Produce'&&!/onion|garlic|lemon|lime/i.test(i[0])).length<=1],
  ['macros','🎯','Macro targets',()=>false]];
 function ingText(r){return r._it||(r._it=r.ing.map(i=>i[0].toLowerCase()).join(' '))}
@@ -778,7 +842,7 @@ const stName=id=>(STORES.find(s=>s[0]===id)||STORES[0])[1];
 function myStores(){const l=(S.stores||[]).filter(id=>STORES.some(s=>s[0]===id));return l.length?l:[S.store||'avg']}
 const splitOn=()=>!!S.split&&myStores().length>1;
 function ownPrice(k,st){const o=S.prices&&(S.prices[st+'::'+k]||S.prices[k]);return o?[+o[0],+o[1]]:null}
-function priceAt(k,st){const own=ownPrice(k,st);if(own)return own;const p=PRICES[k];if(!p)return null;const f=(STORES.find(s=>s[0]===st)||STORES[0])[2];return [p[0],Math.round(p[1]*f*100)/100]}
+function priceAt(k,st){const own=ownPrice(k,st);if(own)return own;const p=PRICES[k];if(!p)return null;const f=(STORES.find(s=>s[0]===st)||STORES[0])[2]*(S.storeBrand&&BRAND_AISLES.includes(aisleOf(k))?.8:1);return [p[0],Math.round(p[1]*f*100)/100]}
 function costAt(k,q,st){const p=priceAt(k,st);if(!p)return null;const n=Math.max(1,Math.ceil(q/p[0]-1e-6));return {st,pr:p,npacks:n,cost:S.packs?n*p[1]:q/p[0]*p[1]}}
 // For planning: the shop's price, or with split shopping the lowest unit price across your stores
 function priceFor(k){if(!splitOn())return priceAt(k,S.store);let b=null;myStores().forEach(st=>{const p=priceAt(k,st);if(p&&(!b||p[1]/p[0]<b[1]/b[0]))b=p});return b}
@@ -810,15 +874,19 @@ function autoFill(){
   const order=S.prepDays.slice().sort((a,b)=>a-b);
   const catOf={B:'Breakfast',L:'Lunch',D:'Dinner',S:'Snack',X:'Dessert'};
   const U=S.noRepeat?7:order.length, unit=d=>S.noRepeat?d:order.indexOf(prepDayFor(d).p);
-  const want=SLOTS.map(x=>x[0]).filter(s=>(S.slots||[]).includes(s));
+  const wantAll=SLOTS.map(x=>x[0]).filter(s=>(S.slots||[]).includes(s));
+  const lo=!!S.leftoverLunch&&wantAll.includes('L')&&wantAll.includes('D');
+  const want=lo?wantAll.filter(s=>s!=='L'):wantAll;
   // Freezer meals go in first (later in the week, since they keep), and cost nothing this week
   const fixed={}, fixedIds={}, slotOf={};SLOTS.forEach(([s,l])=>slotOf[l]=s);
   (S.freezer||[]).forEach(f=>{const r=rec(f.rid);if(!r||!(f.n>0))return;const s=slotOf[r.cat];if(!want.includes(s))return;
     let left=S.noRepeat?1:Math.floor(f.n);
     for(let d=6;d>=0&&left>0;d--){const k=key(d,s);if(!fixed[k]){fixed[k]=r.id;(fixedIds[s]=fixedIds[s]||new Set()).add(r.id);left--}}});
-  const daysIn={};want.forEach(s=>daysIn[s]=Array.from({length:U},(_,i)=>[0,1,2,3,4,5,6].filter(d=>unit(d)===i&&!fixed[key(d,s)]).length));
+  const daysIn={};want.forEach(s=>daysIn[s]=Array.from({length:U},(_,i)=>[0,1,2,3,4,5,6].filter(d=>unit(d)===i&&!fixed[key(d,s)]).length*(lo&&s==='D'?2:1)));
   const apply=ch=>{const plan={};for(const s in ch)for(let d=0;d<7;d++){if(fixed[key(d,s)])continue;const id=ch[s][unit(d)];if(id)plan[key(d,s)]=id}
-    for(const k in fixed)plan[k]=fixed[k];return plan};
+    for(const k in fixed)plan[k]=fixed[k];
+    if(lo)for(let d=0;d<7;d++){const id=plan[key((d+6)%7,'D')];if(id)plan[key(d,'L')]=id}
+    return plan};
   // Fast cost model (same math as the grocery list) so the planner can try thousands of combinations quickly
   const vec={}, pc={}, srv={};
   allRecipes().forEach(r=>{srv[r.id]=r.serv;vec[r.id]=ingUsed(r).map(([n,q,u])=>[ikey(n,u),q/r.serv]).filter(([k])=>!(S.pantry&&S.pantry[k]))});
@@ -862,7 +930,7 @@ function autoFill(){
   // The budget is a hard cap: if every meal can't fit, leave out desserts, snacks, breakfasts, then lunches
   for(const s of ['X','S','B','L']){ if(!res.over) break; if(!slots.includes(s)||slots.length===1) continue; slots=slots.filter(x=>x!==s); dropped.push(s); res=optimize(slots); }
   if(res.over){S.plan=old;S.frzSlots=oldF;toast(`Can't plan under ${money(S.budget)}: the cheapest week is ${money(res.c)}`);render();return}
-  S.plan=apply(res.ch); S.frzSlots={}; for(const k in fixed)S.frzSlots[k]=1; S.checked=[];
+  S.plan=apply(res.ch); S.frzSlots={}; for(const k in fixed)S.frzSlots[k]=1; if(lo)for(let d=0;d<7;d++)if(fixed[key((d+6)%7,'D')])S.frzSlots[key(d,'L')]=1; S.checked=[];
   const nf=Object.keys(fixed).length; if(nf) msg+=` · ${nf} freezer meal${nf>1?'s':''} used`;
   const short=S.noRepeat?want.filter(s=>{const n=allRecipes().filter(r=>r.cat===catOf[s]&&allowed(r)).length;return n>0&&n<7}).map(s=>catOf[s].toLowerCase()):[];
   const none=want.filter(s=>!allRecipes().some(r=>r.cat===catOf[s]&&allowed(r))).map(s=>catOf[s].toLowerCase());
@@ -974,6 +1042,52 @@ function viewShopping(){
   document.querySelectorAll('[data-sk]').forEach(b=>b.onclick=()=>{const s=new Set(S.checked||[]);s.has(b.dataset.sk)?s.delete(b.dataset.sk):s.add(b.dataset.sk);S.checked=[...s];save();viewShopping()});
 }
 
+/* ---------- Ways to save ---------- */
+// Cheaper ingredient swaps: [from key, to name, to unit, to aisle, qty ratio, why]
+const SWAPS=[
+ ['chicken breast|g','Chicken thighs, boneless','g','Meat & Fish',1,'Thighs cost less and stay juicier when reheated'],
+ ['cheddar, shredded|g','Cheddar block','g','Dairy & Eggs',1,'Grate a block yourself'],
+ ['maple syrup|tbsp','Pancake syrup','tbsp','Pantry',1,'Table syrup instead of pure maple'],
+ ['marinara sauce|jar','Diced tomatoes','can','Pantry',1,'Canned tomatoes + Italian seasoning instead of jarred sauce'],
+ ['quinoa|g','Rice (dry)','g','Pantry',1,'Rice instead of quinoa'],
+ ['lean ground turkey|g','Lean ground beef','g','Meat & Fish',1,'Ground beef is usually cheaper than turkey'],
+ ['beef stir-fry strips|g','Lean ground beef','g','Meat & Fish',1,'Ground beef in stir-fries'],
+ ['pork tenderloin|g','Boneless pork chops','g','Meat & Fish',1,'Pork chops instead of tenderloin'],
+ ['english muffins|pc','Sandwich bread','pc','Bakery',1,'Toast instead of English muffins'],
+ ['frozen meatballs|g','Lean ground beef','g','Meat & Fish',1,'Roll your own meatballs'],
+ ['greek yogurt (plain)|g','Yogurt (plain, large tub)','g','Dairy & Eggs',1,'Regular plain yogurt instead of Greek'],
+ ['mozzarella, shredded|g','Mozzarella block','g','Dairy & Eggs',1,'Grate a block yourself']];
+Object.assign(PRICES,{'yogurt (plain, large tub)|g':[1500,6],'mozzarella block|g':[454,7]});
+const swapOn=k=>!!(S.swaps&&S.swaps[k]);
+function swapIng(i){const k=ikey(i[0],i[2]);if(!swapOn(k))return i;const s=SWAPS.find(x=>x[0]===k);return s?[s[1],i[1]*s[4],s[2],s[3]]:i}
+// Store brands: estimated ~20% off packaged groceries (not meat or produce), only where you haven't entered your own price
+const BRAND_AISLES=['Pantry','Dairy & Eggs','Frozen','Spices & Sauces','Bakery'];
+let _aisleOf=null;
+function aisleOf(k){if(!_aisleOf){_aisleOf={};allRecipes().forEach(r=>r.ing.forEach(([n,,u,a])=>_aisleOf[ikey(n,u)]=a));SWAPS.forEach(s=>_aisleOf[ikey(s[1],s[2])]=s[3])}return _aisleOf[k]}
+function syncLunch(){if(!S.leftoverLunch||!(S.slots||[]).includes('L'))return;for(let d=0;d<7;d++){const id=S.plan[key((d+6)%7,'D')];if(id)S.plan[key(d,'L')]=id}}
+function saveCard(){
+  const base=weekCost(), tips=[];
+  // store brands
+  const sb=!!S.storeBrand;S.storeBrand=!sb;const alt=weekCost();S.storeBrand=sb;
+  tips.push(`<label class="toggle" style="padding:8px 0;border-top:1px solid var(--line)"><div><b>🏷 Buy store brands</b><div class="small muted">No Name, Great Value, Compliments, Selection… ${sb?`saving about ${money(Math.max(0,alt-base))}`:`could save about ${money(Math.max(0,base-alt))}`} this week (estimate)</div></div><input type="checkbox" id="sbrand" ${sb?'checked':''}></label>`);
+  // ingredient swaps relevant this week
+  const have=new Set(groceries().map(i=>i.k));
+  SWAPS.forEach(s=>{const on=swapOn(s[0]);if(!on&&!have.has(s[0]))return;S.swaps=S.swaps||{};
+    if(on)delete S.swaps[s[0]];else S.swaps[s[0]]=1;const c=weekCost();if(on)S.swaps[s[0]]=1;else delete S.swaps[s[0]];
+    const d=on?c-base:base-c;if(!on&&d<0.5)return;
+    tips.push(`<label class="toggle" style="padding:8px 0;border-top:1px solid var(--line)"><div><b>🔁 ${esc(s[5])}</b><div class="small muted">${on?`On · saving about ${money(Math.max(0,d))}`:`Save about ${money(d)}`} this week</div></div><input type="checkbox" data-swp="${esc(s[0])}" ${on?'checked':''}></label>`)});
+  // leftovers for lunch
+  if((S.slots||[]).includes('L')&&(S.slots||[]).includes('D'))
+    tips.push(`<label class="toggle" style="padding:8px 0;border-top:1px solid var(--line)"><div><b>🍱 Leftovers for lunch</b><div class="small muted">Make extra supper and pack it for the next day's lunch. One less recipe to buy for every day. Re-plans your week.</div></div><input type="checkbox" id="lolunch" ${S.leftoverLunch?'checked':''}></label>`);
+  tips.push(`<div class="small muted" style="padding:8px 0;border-top:1px solid var(--line)">More: pick 💰 <b>Cheapest meals</b> in Your tastes, turn on <b>Cook once, eat twice</b>, and compare stores to split your list.</div>`);
+  return `<div class="card"><b>💰 Ways to save</b>${tips.join('')}</div>`;
+}
+function bindSave(){
+  const sb=$('#sbrand');if(sb)sb.onchange=e=>{S.storeBrand=e.target.checked;save();viewGrocery()};
+  document.querySelectorAll('[data-swp]').forEach(c=>c.onchange=()=>{S.swaps=S.swaps||{};if(c.checked)S.swaps[c.dataset.swp]=1;else delete S.swaps[c.dataset.swp];save();viewGrocery()});
+  const lo=$('#lolunch');if(lo)lo.onchange=e=>{S.leftoverLunch=e.target.checked;save();autoFill();tab='grocery';render()};
+}
+
 /* ---------- Views ---------- */
 function render(){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
@@ -1013,7 +1127,7 @@ function viewPlan(){
     <div class="stat"><b>${uniq}</b><span>Recipes to cook</span></div>
     <div class="stat"><b>${avg||'—'}</b><span>Avg cal / day</span></div>
   </div>`;
-  const cnt={};Object.values(S.plan).forEach(id=>{if(rec(id))cnt[id]=(cnt[id]||0)+1});const reps=Object.values(cnt).filter(n=>n>1).length;
+  const cnt={};Object.entries(S.plan).forEach(([k,id])=>{if(rec(id)&&!(S.leftoverLunch&&k.endsWith('-L')))cnt[id]=(cnt[id]||0)+1});const reps=Object.values(cnt).filter(n=>n>1).length;
   if(S.noRepeat&&reps) h+=`<div class="card" style="background:var(--warn-bg);border-color:transparent"><b class="warnic">↻ ${reps} meal${reps>1?'s are':' is'} planned more than once.</b> <span class="small">Tap Re-plan week for all-different meals.</span></div>`;
   if(warns) h+=`<div class="card" style="background:var(--warn-bg);border-color:transparent"><b class="warnic">⚠ ${warns} meal${warns>1?'s':''} past fridge life.</b> <span class="small">Freeze those portions on prep day or add another prep day in settings.</span></div>`;
   if(!planned.length) h+=`<div class="card empty">Tap <b>Plan my week</b> for a batch-friendly plan under your budget, or tap any slot below to choose a recipe.</div>`;
@@ -1024,7 +1138,7 @@ function viewPlan(){
     slots.forEach(([s,lab])=>{
       const r=rec(S.plan[key(d,s)]); const w=slotWarn(d,s);
       h+=`<div class="slot"><div class="lab">${lab}</div><button class="meal" data-slot="${d}|${s}">${r?
-        `<div class="nm">${r.e||'🍽️'} ${esc(r.name)}${(S.rpref||{})[r.id]===1?' 👍':''}</div><div class="meta">${isFrz(key(d,s))?'<span style="color:var(--p);font-weight:600">🧊 From your freezer · free</span> · thaw the night before':`${r.cal} cal · ${r.p}g protein · ${money(servCost(r))}`}${w?` · <span class="warnic">⚠ ${w.gap} days old — freeze</span>`:''}</div>`
+        `<div class="nm">${r.e||'🍽️'} ${esc(r.name)}${(S.rpref||{})[r.id]===1?' 👍':''}${S.leftoverLunch&&s==='L'&&S.plan[key((d+6)%7,'D')]===r.id?' <span class="tag">Leftovers</span>':''}</div><div class="meta">${isFrz(key(d,s))?'<span style="color:var(--p);font-weight:600">🧊 From your freezer · free</span> · thaw the night before':`${r.cal} cal · ${r.p}g protein · ${money(servCost(r))}`}${w?` · <span class="warnic">⚠ ${w.gap} days old — freeze</span>`:''}</div>`
         :`<span class="add">+ Add ${lab.toLowerCase()}</span>`}</button>${r?`<button class="swap" data-swap="${d}|${s}" aria-label="Swap meal">↻</button>`:''}</div>`;
     });
     if(t.cal) h+=`<div class="bars">${bar('Cal',t.cal,S.goals.cal,'var(--accent)')}${bar('P',t.p,S.goals.p,'var(--p)')}${bar('C',t.c,S.goals.c,'var(--c)')}${bar('F',t.f,S.goals.f,'var(--f)')}</div>`;
@@ -1082,6 +1196,7 @@ function viewGrocery(){
   if(!items.length){$('#view').innerHTML=h+`<div class="card empty">Your grocery list builds itself from your plan.<br>Add meals on the Plan tab.</div>`;bindGro();return}
   h+=`<div class="stats"><div class="stat"><b>${money(total)}</b><span>Estimated total</span></div><div class="stat"><b>${money(spent)}</b><span>In cart</span></div><div class="stat"><b>${left}</b><span>Items left</span></div></div>
   <div class="toggle card" style="padding:10px 14px"><div><b>Store pack sizes</b><div class="small muted">Price whole packs, the way you actually buy them</div></div><input type="checkbox" id="packs" ${S.packs?'checked':''}></div>
+  ${saveCard()}
   ${compareCard(buy)}
   <div class="small muted" style="margin:0 4px 6px">${splitOn()?'Each item is listed under the store where it\'s cheapest.':`Prices are for ${esc(store()[1])}.`} Estimates unless you've entered your own. Tap a price to add flyer prices or mark something you already have.</div>`;
   const row=i=>{const on=checked.has(i.k);
@@ -1098,7 +1213,7 @@ function viewGrocery(){
     });
   });
   if(have.length) h+=`<div class="sec-title">Already in your kitchen</div><div class="card" style="padding:4px 12px">${have.map(row).join('')}</div>`;
-  $('#view').innerHTML=h; bindGro(); bindCompare();
+  $('#view').innerHTML=h; bindGro(); bindCompare(); bindSave();
   $('#packs').onchange=e=>{S.packs=e.target.checked;save();viewGrocery()};
   document.querySelectorAll('[data-k]').forEach(c=>c.onchange=()=>{
     const s=new Set(S.checked||[]); c.checked?s.add(c.dataset.k):s.delete(c.dataset.k); S.checked=[...s]; save(); viewGrocery();
@@ -1330,6 +1445,8 @@ function settingsSheet(){
   <div class="chips">${[1,2,3,4,5,6].map(n=>`<button class="chip ${S.people===n?'on':''}" data-pp="${n}">${n}</button>`).join('')}</div>
   <div class="sec-title">Variety</div>
   <label class="toggle card" style="padding:10px 14px"><div><b>No repeats</b><div class="small muted">Every meal is a different recipe each day. Turn off to batch-cook the same meal a few days in a row (cheaper, less cooking).</div></div><input type="checkbox" id="norep" ${S.noRepeat?'checked':''}></label>
+  <label class="toggle card" style="padding:10px 14px"><div><b>Leftovers for lunch</b><div class="small muted">Lunch is last night's supper. Saves buying separate lunch ingredients.</div></div><input type="checkbox" id="lolset" ${S.leftoverLunch?'checked':''}></label>
+  <label class="toggle card" style="padding:10px 14px"><div><b>Buy store brands</b><div class="small muted">Prices packaged groceries at about 20% less (estimate).</div></div><input type="checkbox" id="sbset" ${S.storeBrand?'checked':''}></label>
   <label class="toggle card" style="padding:10px 14px"><div><b>Cook once, eat twice</b><div class="small muted">Cook whole recipes instead of scaling them down. Leftovers go in your freezer when you start a new week, and get planned in later for free.</div></div><input type="checkbox" id="fullb" ${S.fullBatch?'checked':''}></label>
   <div class="sec-title">Prep days</div>
   <div class="small muted" style="margin:0 4px 6px">Each meal is cooked on the closest prep day before it. Two prep days (e.g. Sun + Wed) keep everything within fridge life.</div>
@@ -1352,7 +1469,7 @@ function settingsSheet(){
     S.budget=Math.max(10,parseFloat($('#gb').value)||S.budget);S.store=$('.storesel').value;S.stores=STORES.map(s=>s[0]).filter(s=>ms.has(s));S.split=$('#splt').checked;
     S.slots=SLOTS.map(x=>x[0]).filter(s=>sl.has(s));
     Object.keys(S.plan).forEach(k=>{if(!sl.has(k.split('-')[1]))delete S.plan[k]});
-    S.goals={cal:v('#g1'),p:v('#g2'),c:v('#g3'),f:v('#g4')};S.people=people;S.prepDays=[...pd].sort();const nr=$('#norep').checked,fb=$('#fullb').checked,ch=nr!==S.noRepeat||fb!==!!S.fullBatch;S.noRepeat=nr;S.fullBatch=fb;save();closeSheet();render();toast(ch?'Settings saved · tap Re-plan week to apply':'Settings saved')};
+    S.goals={cal:v('#g1'),p:v('#g2'),c:v('#g3'),f:v('#g4')};S.people=people;S.prepDays=[...pd].sort();const nr=$('#norep').checked,fb=$('#fullb').checked,lol=$('#lolset').checked,ch=nr!==S.noRepeat||fb!==!!S.fullBatch||lol!==!!S.leftoverLunch;S.noRepeat=nr;S.fullBatch=fb;S.leftoverLunch=lol;S.storeBrand=$('#sbset').checked;save();closeSheet();render();toast(ch?'Settings saved · tap Re-plan week to apply':'Settings saved')};
   $('#bk').onclick=async()=>{const t=JSON.stringify(S);try{await navigator.clipboard.writeText(t);toast('Backup copied. Paste it in a note or email to keep it')}catch(e){showText(t)}};
   $('#rs').onclick=()=>{openSheet(`<h2>Restore a backup</h2><p class="small muted">Paste a backup you copied earlier. This replaces everything in the app.</p><textarea id="rsx" style="min-height:180px" placeholder="Paste backup here"></textarea><div class="row" style="margin-top:10px"><button class="btn grow" data-close>Cancel</button><button class="btn pri grow" id="rsgo">Restore</button></div>`);
     $('#rsgo').onclick=()=>{try{const x=JSON.parse($('#rsx').value);if(!x||typeof x!=='object'||!x.plan)throw 0;S=normalize(x);save();closeSheet();render();toast('Backup restored')}catch(e){toast('That doesn\'t look like a backup')}}};
@@ -1366,7 +1483,7 @@ function normalize(x){const d=defaultState();const o=(!x||typeof x!=='object')?d
   if(!o.pantry){o.pantry={};Object.entries(PRICES).forEach(([k,v])=>{if(v[2])o.pantry[k]=1})}
   if(!Array.isArray(o.slots)||!o.slots.length)o.slots=['B','L','D','S'];
   if(typeof o.noRepeat!=='boolean')o.noRepeat=true;
-  o.freezer=o.freezer||[];o.frzSlots=o.frzSlots||{};o.history=o.history||[];o.fullBatch=!!o.fullBatch;o.shop=!!o.shop;
+  o.freezer=o.freezer||[];o.frzSlots=o.frzSlots||{};o.history=o.history||[];o.fullBatch=!!o.fullBatch;o.shop=!!o.shop;o.swaps=o.swaps||{};o.storeBrand=!!o.storeBrand;o.leftoverLunch=!!o.leftoverLunch;
   return o}
 function onboard(){
   let people=S.people||1, sl=new Set(S.slots||['B','L','D','S']);
@@ -1388,7 +1505,7 @@ function onboard(){
 }
 function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
 function loadLocal(){try{const t=localStorage.getItem(LS);return t?JSON.parse(t):null}catch(e){return null}}
-function save(){saveLocal();if(ref){dirty=true;clearTimeout(wTimer);wTimer=setTimeout(flush,700)}}
+function save(){syncLunch();saveLocal();if(ref){dirty=true;clearTimeout(wTimer);wTimer=setTimeout(flush,700)}}
 async function flush(){
   if(!ref||writing||!dirty) return;
   writing=true;dirty=false;setSync('Saving…');
