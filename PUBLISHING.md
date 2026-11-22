@@ -111,3 +111,22 @@ Prices are estimates. Enter your store's prices for exact totals.
 - **Ontario/Canada focus.** The prices and stores are Canadian. Either list the app in Canada only to start, or add other regions later.
 - **Data lives on the phone.** If someone uninstalls the app, their data goes too. Back up / Restore is in Settings, so mention it in your listing or FAQ.
 - **Updating the app:** change `index.html` in your GitHub repository. Installed apps pick up the new version the next time they're opened online, with no new Play upload needed (unless you change the name, icon or package settings).
+
+---
+
+## Weekly deals feed (optional)
+
+The app reads `deals.json` from the same site each time it opens and shows those deals to everyone, marked "weekly feed". The format is:
+
+```json
+[
+  { "item": "chicken breast|g", "store": "walmart", "price": 8.88, "pack": 1000, "until": "2026-11-26" },
+  { "item": "bacon|g", "store": "nofrills", "price": 3.97, "pack": 375, "until": "2026-11-26" }
+]
+```
+
+- `item` is the ingredient name in lower case, a `|`, and its unit, as used in the recipes (e.g. `lean ground beef|g`, `eggs|pc`, `black beans|can`).
+- `store` is one of `nofrills`, `foodbasics`, `freshco`, `walmart`, `gianttiger`, `independent`, `metro`, `sobeys`, `loblaws`.
+- `price` is the sale price for `pack` units, and `until` is the last day of the sale. Expired deals are ignored.
+
+Leave it as `[]` when there are no deals.

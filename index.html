@@ -729,7 +729,7 @@ const goalHits=r=>GOALS.filter(g=>goalsOn().includes(g[0])&&g[3](r));
 const SHARE={B:.25,L:.3,D:.35,S:.1,X:.1};
 function planScore(){
   let s=0;
-  Object.values(S.plan).forEach(id=>{const r=rec(id);if(r)s+=goalHits(r).length*2+(liked(r)?1:0)+((S.rpref||{})[r.id]===1?2:0)});
+  Object.values(S.plan).forEach(id=>{const r=rec(id);if(r)s+=(hasDeal(r)?2:0)+goalHits(r).length*2+(liked(r)?1:0)+((S.rpref||{})[r.id]===1?2:0)});
   if(goalsOn().includes('macros')){
     const share=(S.slots||[]).reduce((a,x)=>a+(SHARE[x]||0),0)||1;let err=0;
     for(let d=0;d<7;d++){const t=dayTotals(d);['cal','p','c','f'].forEach(k=>{const g=S.goals[k]*share;err+=Math.abs(t[k]-g)/g})}
@@ -738,7 +738,7 @@ function planScore(){
   return s;
 }
 
-const weight=r=>1+goalHits(r).length*2+(tagsOf(r).filter(g=>T().pref[g]===1).length?3:0)+((S.rpref||{})[r.id]===1?6:0);
+const weight=r=>1+(hasDeal(r)?4:0)+goalHits(r).length*2+(tagsOf(r).filter(g=>T().pref[g]===1).length?3:0)+((S.rpref||{})[r.id]===1?6:0);
 function wshuffle(list){return list.map(r=>({r,k:-Math.log(Math.random())/weight(r)})).sort((a,b)=>a.k-b.k).map(x=>x.r)}
 function tagLabel(g){if(g==='spicy')return 'spicy food';const [k,v]=g.split(':');return k==='p'?(PROTEINS.find(p=>p[0]===v)||[,''])[1].replace(/^\S+ /,'').toLowerCase():v+' food'}
 function tasteSheet(after){
@@ -826,7 +826,7 @@ function groceries(){
     if(i.extra){const x=S.extras.find(e=>e.id===i.extra);i.cost=x&&x.price?+x.price:0;i.priced=!!(x&&x.price)}
     else if(pr){i.priced=true;i.by={};myStores().forEach(st=>{const c=costAt(i.k,i.q,st);if(c)i.by[st]=c});
       const pick=splitOn()?Object.values(i.by).sort((a,b)=>a.cost-b.cost)[0]:(i.by[S.store]||costAt(i.k,i.q,S.store));
-      i.store=pick.st;i.npacks=pick.npacks;i.cost=pick.cost;i.pr=pick.pr;i.own=!!ownPrice(i.k,pick.st)}
+      i.store=pick.st;i.npacks=pick.npacks;i.cost=pick.cost;i.pr=pick.pr;i.own=!!ownPrice(i.k,pick.st);i.deal=!!activeDeal(i.k,pick.st)}
     else{i.priced=false;i.cost=0}
     if(i.pantry)i.cost=0;
     return i;
@@ -842,7 +842,9 @@ const stName=id=>(STORES.find(s=>s[0]===id)||STORES[0])[1];
 function myStores(){const l=(S.stores||[]).filter(id=>STORES.some(s=>s[0]===id));return l.length?l:[S.store||'avg']}
 const splitOn=()=>!!S.split&&myStores().length>1;
 function ownPrice(k,st){const o=S.prices&&(S.prices[st+'::'+k]||S.prices[k]);return o?[+o[0],+o[1]]:null}
-function priceAt(k,st){const own=ownPrice(k,st);if(own)return own;const p=PRICES[k];if(!p)return null;const f=(STORES.find(s=>s[0]===st)||STORES[0])[2]*(S.storeBrand&&BRAND_AISLES.includes(aisleOf(k))?.8:1);return [p[0],Math.round(p[1]*f*100)/100]}
+function basePriceAt(k,st){const deal=activeDeal(k,st);if(deal)return [deal.pack,deal.price];const own=ownPrice(k,st);if(own)return own;const p=PRICES[k];if(!p)return null;const f=(STORES.find(s=>s[0]===st)||STORES[0])[2]*(S.storeBrand&&BRAND_AISLES.includes(aisleOf(k))?.8:1);return [p[0],Math.round(p[1]*f*100)/100]}
+// Price you actually pay: sale or shelf price, less any store discount you get (e.g. employee discount)
+function priceAt(k,st){const b=basePriceAt(k,st);if(!b)return null;const pc=discPct(st);return pc?[b[0],Math.round(b[1]*(1-pc/100)*100)/100]:b}
 function costAt(k,q,st){const p=priceAt(k,st);if(!p)return null;const n=Math.max(1,Math.ceil(q/p[0]-1e-6));return {st,pr:p,npacks:n,cost:S.packs?n*p[1]:q/p[0]*p[1]}}
 // For planning: the shop's price, or with split shopping the lowest unit price across your stores
 function priceFor(k){if(!splitOn())return priceAt(k,S.store);let b=null;myStores().forEach(st=>{const p=priceAt(k,st);if(p&&(!b||p[1]/p[0]<b[1]/b[0]))b=p});return b}
@@ -1088,6 +1090,67 @@ function bindSave(){
   const lo=$('#lolunch');if(lo)lo.onchange=e=>{S.leftoverLunch=e.target.checked;save();autoFill();tab='grocery';render()};
 }
 
+/* ---------- Flyer deals & store discounts ---------- */
+let FEED=[];
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const nextWed=()=>{const d=new Date();d.setDate(d.getDate()+((3-d.getDay()+7)%7||7));return d.toISOString().slice(0,10)};
+function allDeals(){const t=today();return (S.deals||[]).concat(FEED).filter(d=>d&&d.k&&d.store&&!(d.until&&d.until<t))}
+function activeDeal(k,st){let b=null;allDeals().forEach(d=>{if(d.k===k&&d.store===st&&(!b||d.price/d.pack<b.price/b.pack))b=d});return b}
+const discPct=st=>{const d=(S.discounts||{})[st];return d&&d.on?Math.min(50,Math.max(0,+d.pct||0)):0};
+function dealStores(){return new Set(splitOn()?myStores():[S.store])}
+function hasDeal(r){const sts=dealStores();return ingUsed(r).some(([n,,u])=>{const k=ikey(n,u);return allDeals().some(d=>d.k===k&&sts.has(d.store))})}
+function ingredientKeys(){const m=new Map();allRecipes().forEach(r=>r.ing.forEach(([n,,u])=>m.set(ikey(n,u),{n,u})));SWAPS.forEach(s=>m.set(ikey(s[1],s[2]),{n:s[1],u:s[2]}));return [...m.entries()].sort((a,b)=>a[1].n.localeCompare(b[1].n))}
+function dealsCard(){
+  const ds=allDeals(), names=new Map(ingredientKeys());
+  return `<div class="card"><div class="row"><b class="grow">🔥 Flyer deals${ds.length?` (${ds.length})`:''}</b><button class="btn sm pri" id="adddeal">+ Add deal</button></div>
+  <div class="small muted" style="margin:6px 0">Add sales from this week's flyers. Your list uses the sale price, and <b>Re-plan week</b> favours meals that use them.${(S.discounts&&Object.values(S.discounts).some(d=>d.on))?' Store discounts are applied on top.':''}</div>
+  ${ds.map(d=>{const it=names.get(d.k);return `<div class="row" style="padding:6px 0;border-top:1px solid var(--line)"><span class="grow"><b>${esc(it?it.n:d.k)}</b><div class="small muted">${esc(stName(d.store))} · ${money(d.price)} for ${it?fmtIng(d.pack,it.u,it.n):d.pack}${d.until?` · until ${d.until.slice(5)}`:''}${d.feed?' · weekly feed':''}</div></span>${d.feed?'':`<button class="swap" data-deldeal="${d.id}">✕</button>`}</div>`}).join('')}
+  <div class="small" style="margin-top:8px">Find this week's sales: <a href="https://flipp.com" target="_blank" rel="noopener">Flipp</a> (flipp.com) shows Walmart, No Frills, Food Basics, Metro and more in one place.</div></div>`;
+}
+function dealSheet(){
+  let q='', pick=null;
+  const keys=ingredientKeys();
+  const draw=()=>{
+    if(!pick){
+      const list=keys.filter(([k,v])=>!q||v.n.toLowerCase().includes(q)).slice(0,40);
+      openSheet(`<h2>What's on sale?</h2><input id="dq" placeholder="Search, e.g. chicken, cheese, bacon" value="${esc(q)}" style="margin:8px 0">
+      ${list.map(([k,v])=>`<button class="rcard" data-dk="${esc(k)}" style="padding:10px 12px"><div class="grow"><b>${esc(v.n)}</b><div class="small muted">usually ${priceAt(k,S.store)?money(priceAt(k,S.store)[1])+' for '+fmtIng(priceAt(k,S.store)[0],v.u,v.n):'no price yet'}</div></div>›</button>`).join('')||'<div class="empty">No match. Deals work for ingredients used in your recipes.</div>'}
+      <button class="btn" data-close style="width:100%">Cancel</button>`);
+      const dq=$('#dq');dq.oninput=()=>{q=dq.value.toLowerCase();draw();const f=$('#dq');f.focus();f.setSelectionRange(q.length,q.length)};
+      document.querySelectorAll('[data-dk]').forEach(b=>b.onclick=()=>{pick=b.dataset.dk;draw()});
+      return;
+    }
+    const v=new Map(keys).get(pick), base=priceAt(pick,S.store)||[v.u==='g'||v.u==='ml'?500:1,0];
+    const sts=[...new Set(myStores().concat([S.store]))];
+    openSheet(`<h2>${esc(v.n)} on sale</h2>
+    <div class="field"><label>Store</label><select id="dst">${STORES.filter(s=>s[0]!=='avg').map(s=>`<option value="${s[0]}" ${s[0]===(sts.find(x=>x!=='avg')||'walmart')?'selected':''}>${s[1]}</option>`).join('')}</select></div>
+    <div class="grid2"><div class="field"><label>Sale price ($)</label><input id="dpr" type="number" step="0.01" min="0" placeholder="e.g. 8.88"></div>
+    <div class="field"><label>For how much (${v.u==='pc'?'items':v.u})</label><input id="dpk" type="number" step="any" min="0" value="${base[0]}"></div></div>
+    <div class="field"><label>Sale ends</label><input id="dun" type="date" value="${nextWed()}"></div>
+    <div class="small muted">Tip: for "$8.88/kg", enter 8.88 for 1000 g. For "2 for $5", enter 5 for 2 packs' worth.</div>
+    <div class="row" style="margin-top:12px"><button class="btn grow" id="dback">Back</button><button class="btn pri grow" id="dsv">Add deal</button></div>`);
+    $('#dback').onclick=()=>{pick=null;draw()};
+    $('#dsv').onclick=()=>{const price=parseFloat($('#dpr').value),pack=parseFloat($('#dpk').value);
+      if(!(price>=0)||!(pack>0)){toast('Enter the sale price');return}
+      S.deals=(S.deals||[]).concat({id:'d'+Date.now(),k:pick,store:$('#dst').value,price,pack,until:$('#dun').value||null});
+      save();closeSheet();viewGrocery();toast('Deal added · re-plan to build meals around it')};
+  };
+  draw();
+}
+function bindDeals(){
+  const a=$('#adddeal');if(a)a.onclick=dealSheet;
+  document.querySelectorAll('[data-deldeal]').forEach(b=>b.onclick=()=>{S.deals=(S.deals||[]).filter(d=>d.id!==b.dataset.deldeal);save();viewGrocery()});
+}
+// Optional weekly feed: a deals.json file next to the app (e.g. on GitHub Pages)
+async function loadFeed(){
+  try{if(!/^https?:/.test(location.protocol)||/claude/.test(location.hostname))return;
+    const r=await fetch('deals.json',{cache:'no-store'});if(!r.ok)return;const j=await r.json();
+    const list=Array.isArray(j)?j:(j.deals||[]);
+    FEED=list.filter(d=>d&&d.item&&d.store&&d.price>=0&&d.pack>0).map((d,i)=>({id:'f'+i,k:String(d.item).toLowerCase(),store:d.store,price:+d.price,pack:+d.pack,until:d.until||null,feed:true}));
+    if(FEED.length)render();
+  }catch(e){}
+}
+
 /* ---------- Views ---------- */
 function render(){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
@@ -1197,11 +1260,12 @@ function viewGrocery(){
   h+=`<div class="stats"><div class="stat"><b>${money(total)}</b><span>Estimated total</span></div><div class="stat"><b>${money(spent)}</b><span>In cart</span></div><div class="stat"><b>${left}</b><span>Items left</span></div></div>
   <div class="toggle card" style="padding:10px 14px"><div><b>Store pack sizes</b><div class="small muted">Price whole packs, the way you actually buy them</div></div><input type="checkbox" id="packs" ${S.packs?'checked':''}></div>
   ${saveCard()}
+  ${dealsCard()}
   ${compareCard(buy)}
   <div class="small muted" style="margin:0 4px 6px">${splitOn()?'Each item is listed under the store where it\'s cheapest.':`Prices are for ${esc(store()[1])}.`} Estimates unless you've entered your own. Tap a price to add flyer prices or mark something you already have.</div>`;
   const row=i=>{const on=checked.has(i.k);
     const qty=i.q==null?'':fmtIng(i.q,i.u,i.n);
-    const packTxt=(i.pr&&S.packs&&!i.pantry?` · ${i.npacks} × ${fmtIng(i.pr[0],i.u,i.n)} pack`:'')+(i.own&&!i.pantry?' · your price':'');
+    const packTxt=(i.pr&&S.packs&&!i.pantry?` · ${i.npacks} × ${fmtIng(i.pr[0],i.u,i.n)} pack`:'')+(i.deal&&!i.pantry?' · 🔥 on sale':i.own&&!i.pantry?' · your price':'')+(discPct(i.store||S.store)&&!i.pantry?` · ${discPct(i.store||S.store)}% off`:'');
     return `<div class="gitem ${on?'done':''}"><input type="checkbox" data-k="${esc(i.k)}" ${on?'checked':''} ${i.pantry?'disabled':''}><div style="min-width:0"><div class="gn">${esc(i.n)} <span class="muted small">${qty}</span></div><div class="small muted">${esc([...i.from].join(', '))}${packTxt}</div></div>
     <span class="gq"><button class="price" data-price="${esc(i.k)}">${i.pantry?'Have it':i.priced?money(i.cost):'Add price'}</button></span></div>`};
   storeGroups(buy).forEach(([st,its])=>{
@@ -1213,7 +1277,7 @@ function viewGrocery(){
     });
   });
   if(have.length) h+=`<div class="sec-title">Already in your kitchen</div><div class="card" style="padding:4px 12px">${have.map(row).join('')}</div>`;
-  $('#view').innerHTML=h; bindGro(); bindCompare(); bindSave();
+  $('#view').innerHTML=h; bindGro(); bindCompare(); bindSave(); bindDeals();
   $('#packs').onchange=e=>{S.packs=e.target.checked;save();viewGrocery()};
   document.querySelectorAll('[data-k]').forEach(c=>c.onchange=()=>{
     const s=new Set(S.checked||[]); c.checked?s.add(c.dataset.k):s.delete(c.dataset.k); S.checked=[...s]; save(); viewGrocery();
@@ -1279,7 +1343,7 @@ function compareCard(buy){
   const own=priced.filter(i=>sts.some(st=>ownPrice(i.k,st))).length;
   const nStores=new Set(priced.map(i=>Object.values(i.by).sort((a,b)=>a.cost-b.cost)[0].st)).size;
   return `<div class="card"><div class="row" style="margin-bottom:6px"><b class="grow">🏪 This week at each store</b><button class="btn sm" id="cmpset">Edit stores</button></div>
-  ${sts.slice().sort((a,b)=>tot[a]-tot[b]).map(st=>`<div class="row" style="padding:6px 0;border-top:1px solid var(--line)"><span class="grow">${esc(stName(st))}${st===best?' <span class="tag">Cheapest</span>':''}</span><b>${money(tot[st])}</b>
+  ${sts.slice().sort((a,b)=>tot[a]-tot[b]).map(st=>`<div class="row" style="padding:6px 0;border-top:1px solid var(--line)"><span class="grow">${esc(stName(st))}${discPct(st)?` <span class="small muted">(−${discPct(st)}%)</span>`:''}${st===best?' <span class="tag">Cheapest</span>':''}</span><b>${money(tot[st])}</b>
     ${!splitOn()&&st===S.store?'<span class="tag" style="margin-left:6px">Shopping here</span>':`<button class="btn sm" data-usest="${st}" style="margin-left:6px">${splitOn()?'Shop only here':'Shop here'}</button>`}</div>`).join('')}
   <div class="row" style="padding:8px 0 2px;border-top:1px solid var(--line)"><span class="grow"><b>Split between stores</b><div class="small muted">${nStores} store${nStores>1?'s':''} · saves ${money(Math.max(0,tot[best]-splitTot))} vs ${esc(stName(best))}</div></span><b>${money(splitTot)}</b>
     ${splitOn()?'<span class="tag" style="margin-left:6px">On</span>':'<button class="btn sm pri" id="splitgo" style="margin-left:6px">Split</button>'}</div>
@@ -1309,7 +1373,7 @@ function viewRecipes(){
 function recCard(r,attr='data-r',extra=''){
   return `<button class="rcard" ${attr}="${r.id}"><div class="emoji">${r.e||'🍽️'}</div><div class="grow" style="min-width:0"><b>${esc(r.name)}</b>${extra}
   <div class="macros"><span><b>${r.cal}</b> cal</span><span><b>${r.p}g</b> P</span><span><b>${r.c}g</b> C</span><span><b>${r.f}g</b> F</span></div>
-  <div class="small muted">${r.cat} · ${money(servCost(r))}/serving · ${r.time} min · fridge ${r.fridge}d${r.custom?' · yours':''}</div>${goalHits(r).slice(0,3).map(g=>`<span class="tag">${g[1]} ${g[2]}</span>`).join('')}${liked(r)&&allowed(r)?'<span class="tag">👍 You like this</span>':''}${!allowed(r)?`<span class="tag w">Not for you · ${esc(whyNot(r))}</span>`:''}</div></button>`;
+  <div class="small muted">${r.cat} · ${money(servCost(r))}/serving · ${r.time} min · fridge ${r.fridge}d${r.custom?' · yours':''}</div>${goalHits(r).slice(0,3).map(g=>`<span class="tag">${g[1]} ${g[2]}</span>`).join('')}${hasDeal(r)?'<span class="tag" style="background:var(--warn-bg);color:var(--accent)">🔥 On sale</span>':''}${liked(r)&&allowed(r)?'<span class="tag">👍 You like this</span>':''}${!allowed(r)?`<span class="tag w">Not for you · ${esc(whyNot(r))}</span>`:''}</div></button>`;
 }
 
 /* ---------- Sheets ---------- */
@@ -1429,6 +1493,9 @@ function settingsSheet(){
   <div class="sec-title">Stores to compare</div>
   <div class="small muted" style="margin:0 4px 6px">Pick the stores you'd shop at. The grocery list compares your week at each one and can split your list so each item comes from wherever it's cheapest.</div>
   <div class="chips">${STORES.filter(s=>s[0]!=='avg').map(s=>`<button class="chip ${(S.stores||[]).includes(s[0])?'on':''}" data-ms="${s[0]}">${s[1]}</button>`).join('')}</div>
+  <div class="sec-title">Store discounts</div>
+  <div class="small muted" style="margin:0 4px 6px">Tick a store where you get a discount at the till, like an employee or family discount. Prices there drop by that much.</div>
+  ${STORES.filter(s=>s[0]!=='avg').map(s=>{const d=(S.discounts||{})[s[0]]||{};return `<div class="row card" style="padding:8px 12px;margin-bottom:6px"><input type="checkbox" data-dsc="${s[0]}" ${d.on?'checked':''} style="width:22px;height:22px;accent-color:var(--brand)"><span class="grow">${s[1]}</span><input data-dpc="${s[0]}" type="number" min="0" max="50" step="1" value="${d.pct||10}" style="width:70px"><span>%</span></div>`}).join('')}
   <label class="toggle card" style="padding:10px 14px;margin-top:10px"><div><b>Split shop for the best prices</b><div class="small muted">Buy each item at the cheapest of your stores. Plans and budget use those prices.</div></div><input type="checkbox" id="splt" ${S.split?'checked':''}></label>
   <div class="sec-title">Weekly grocery budget</div>
   <div class="row"><span style="font-size:20px;font-weight:700">$</span><input id="gb" type="number" min="10" step="5" value="${S.budget}" style="font-size:18px;font-weight:600"></div>
@@ -1466,7 +1533,7 @@ function settingsSheet(){
   let sl=new Set(S.slots||[]);
   document.querySelectorAll('[data-sl]').forEach(b=>b.onclick=()=>{const s=b.dataset.sl;sl.has(s)?sl.delete(s):sl.add(s);if(!sl.size)sl.add(s);b.classList.toggle('on',sl.has(s))});
   $('#sv').onclick=()=>{const v=s=>Math.max(1,parseInt($(s).value)||1);
-    S.budget=Math.max(10,parseFloat($('#gb').value)||S.budget);S.store=$('.storesel').value;S.stores=STORES.map(s=>s[0]).filter(s=>ms.has(s));S.split=$('#splt').checked;
+    S.budget=Math.max(10,parseFloat($('#gb').value)||S.budget);S.store=$('.storesel').value;S.stores=STORES.map(s=>s[0]).filter(s=>ms.has(s));S.split=$('#splt').checked;S.discounts={};document.querySelectorAll('[data-dsc]').forEach(c=>{const st=c.dataset.dsc,p=parseFloat(document.querySelector(`[data-dpc="${st}"]`).value)||0;if(c.checked||p!==10)S.discounts[st]={on:c.checked,pct:p}});
     S.slots=SLOTS.map(x=>x[0]).filter(s=>sl.has(s));
     Object.keys(S.plan).forEach(k=>{if(!sl.has(k.split('-')[1]))delete S.plan[k]});
     S.goals={cal:v('#g1'),p:v('#g2'),c:v('#g3'),f:v('#g4')};S.people=people;S.prepDays=[...pd].sort();const nr=$('#norep').checked,fb=$('#fullb').checked,lol=$('#lolset').checked,ch=nr!==S.noRepeat||fb!==!!S.fullBatch||lol!==!!S.leftoverLunch;S.noRepeat=nr;S.fullBatch=fb;S.leftoverLunch=lol;S.storeBrand=$('#sbset').checked;save();closeSheet();render();toast(ch?'Settings saved · tap Re-plan week to apply':'Settings saved')};
@@ -1483,7 +1550,7 @@ function normalize(x){const d=defaultState();const o=(!x||typeof x!=='object')?d
   if(!o.pantry){o.pantry={};Object.entries(PRICES).forEach(([k,v])=>{if(v[2])o.pantry[k]=1})}
   if(!Array.isArray(o.slots)||!o.slots.length)o.slots=['B','L','D','S'];
   if(typeof o.noRepeat!=='boolean')o.noRepeat=true;
-  o.freezer=o.freezer||[];o.frzSlots=o.frzSlots||{};o.history=o.history||[];o.fullBatch=!!o.fullBatch;o.shop=!!o.shop;o.swaps=o.swaps||{};o.storeBrand=!!o.storeBrand;o.leftoverLunch=!!o.leftoverLunch;
+  o.freezer=o.freezer||[];o.frzSlots=o.frzSlots||{};o.history=o.history||[];o.fullBatch=!!o.fullBatch;o.shop=!!o.shop;o.swaps=o.swaps||{};o.storeBrand=!!o.storeBrand;o.deals=o.deals||[];o.discounts=o.discounts||{};o.leftoverLunch=!!o.leftoverLunch;
   return o}
 function onboard(){
   let people=S.people||1, sl=new Set(S.slots||['B','L','D','S']);
@@ -1537,6 +1604,7 @@ $('#gear').onclick=settingsSheet;
 render();
 if(!S.onboarded) onboard();
 initSync();
+loadFeed();
 if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude\.ai|claudeusercontent/.test(location.hostname)){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 </script>
 </body>
