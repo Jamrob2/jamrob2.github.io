@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weekly Budget Meal Planner</title>
+<meta name="description" content="Plan a week of meals under your grocery budget, with a priced grocery list, store comparison and freezer tracking.">
+<meta name="theme-color" content="#16351f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f3ef;--card:#ffffff;--ink:#14281c;--muted:#66706a;--line:#e4e2da;
+  --brand:#16351f;--brand-2:#eaf0e6;--lime:#ddf75b;--accent:#e8833a;--warn:#c2410c;--warn-bg:#fff1e6;
+  --p:#2f7d55;--c:#d99a1e;--f:#c2566b;--radius:18px;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#111511;--card:#1a201b;--ink:#eef2ef;--muted:#98a29c;--line:#2a322c;
+  --brand:#ddf75b;--brand-2:#26301d;--lime:#ddf75b;--accent:#f0a060;--warn:#fb923c;--warn-bg:#33231a;
+  --p:#5cc28b;--c:#e8b84a;--f:#e47b90;}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"DM Sans",system-ui,sans-serif;font-size:15px;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 11px;width:100%}
+textarea{min-height:110px;resize:vertical}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:14px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+.logo{width:34px;height:34px;border-radius:10px;background:var(--brand);display:grid;place-items:center;color:#fff;font-weight:700}
+h1{font-size:19px;margin:0;font-weight:700;letter-spacing:-.01em}
+.sub{font-size:12px;color:var(--muted)}
+.grow{flex:1}
+.iconbtn{border:1px solid var(--line);background:var(--card);border-radius:12px;width:38px;height:38px;display:grid;place-items:center}
+.pill{font-size:11px;padding:3px 8px;border-radius:99px;background:var(--brand-2);color:var(--brand);font-weight:600}
+main{max-width:760px;margin:0 auto;padding:14px 14px 100px}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;z-index:6;padding-bottom:env(safe-area-inset-bottom)}
+nav .in{display:flex;max-width:760px;width:100%}
+nav button{flex:1;border:0;background:none;padding:9px 0 10px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;color:var(--muted);font-weight:600}
+nav button svg{width:22px;height:22px}
+nav button.on{color:var(--brand)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.row{display:flex;align-items:center;gap:10px}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:9px 13px;font-weight:600;font-size:14px}
+.btn.pri{background:var(--lime);border-color:var(--lime);color:#14281c;border-radius:99px}
+.btn.big{width:100%;padding:16px;font-size:17px;box-shadow:0 6px 18px rgba(0,0,0,.08)}
+.logo{background:var(--lime)!important;color:#14281c!important;font-style:italic}
+.chip.on{background:var(--brand)!important;border-color:var(--brand)!important;color:var(--bg)!important}
+.budget{background:var(--brand);color:#fff;border:0}
+@media (prefers-color-scheme:dark){.budget{background:var(--brand-2)}}
+.budget .t{height:8px;border-radius:9px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:8px}
+.budget .t i{display:block;height:100%;background:var(--lime);border-radius:9px}
+.budget .t i.over{background:#ff8a65}
+.swap{border:1px solid var(--line);background:var(--card);border-radius:99px;width:34px;height:34px;flex:none;font-size:15px}
+.price{border:0;background:none;padding:0;font-weight:600;font-size:13px;color:var(--ink);text-decoration:underline dotted;text-underline-offset:3px}
+.chips.goals{gap:8px}
+.chip.goal{padding:10px 15px;font-size:15px;font-weight:600;background:var(--card);border-color:var(--card);box-shadow:0 1px 0 var(--line)}
+.chip.goal span{font-size:18px;margin-right:2px}
+.chip.goal.on{background:var(--brand)!important;color:var(--bg)!important}
+.chip.tri.like{background:var(--brand-2);border-color:var(--p);color:var(--p)}
+.chip.tri.dis{background:var(--warn-bg);border-color:var(--warn);color:var(--warn);text-decoration:line-through}
+.shopitem{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;padding:14px 2px;font-size:18px}
+.shopitem:first-child{border-top:0}
+.shopitem .box{width:28px;height:28px;border:2px solid var(--brand);border-radius:8px;flex:none;display:grid;place-items:center;font-weight:700;color:var(--brand)}
+.shopitem .muted{font-size:14px}
+.shopitem.done{opacity:.5;font-size:15px;padding:10px 2px}
+.swap:disabled{opacity:.3}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 2px}
+.toggle input{width:22px;height:22px;accent-color:var(--brand);flex:none}
+.btn.sm{padding:6px 10px;font-size:13px;border-radius:10px}
+.btn.danger{color:var(--warn)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.stat b{display:block;font-size:20px;letter-spacing:-.02em}
+.stat span{font-size:11.5px;color:var(--muted)}
+.day h3{margin:0;font-size:16px}
+.slot{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px dashed var(--line)}
+.slot:first-of-type{border-top:0}
+.slot .lab{width:72px;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.slot .meal{flex:1;text-align:left;border:0;background:none;padding:0;min-width:0}
+.slot .meal .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot .meal .meta{font-size:12px;color:var(--muted)}
+.add{color:var(--brand);font-weight:600}
+.warnic{color:var(--warn);font-size:12px;font-weight:600}
+.bars{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.bar{font-size:11px;color:var(--muted)}
+.bar .t{height:6px;border-radius:9px;background:var(--line);overflow:hidden;margin-top:4px}
+.bar .t i{display:block;height:100%;border-radius:9px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:6px 12px;font-size:13px;font-weight:600}
+.chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:99px;background:var(--brand-2);color:var(--brand);font-weight:600;margin-right:4px}
+.tag.w{background:var(--warn-bg);color:var(--warn)}
+.macros{display:flex;gap:10px;font-size:12px;color:var(--muted)}
+.macros b{color:var(--ink);font-weight:600}
+.sec-title{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:18px 4px 8px}
+.gitem{display:flex;align-items:center;gap:12px;padding:10px 2px;border-top:1px solid var(--line)}
+.gitem:first-of-type{border-top:0}
+.gitem input{width:22px;height:22px;accent-color:var(--brand);flex:none}
+.gitem.done .gn{text-decoration:line-through;color:var(--muted)}
+.gq{margin-left:auto;font-weight:600;font-size:13px;white-space:nowrap}
+.rcard{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:8px}
+.emoji{font-size:26px;width:44px;height:44px;border-radius:12px;background:var(--brand-2);display:grid;place-items:center;flex:none}
+.muted{color:var(--muted)}
+.small{font-size:12.5px}
+ol.steps{padding-left:20px;margin:6px 0}
+ol.steps li{margin:4px 0}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:20;display:none;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.sheet{background:var(--bg);width:100%;max-width:640px;max-height:88vh;overflow:auto;border-radius:20px 20px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom))}
+@media(min-width:700px){.overlay{align-items:center}.sheet{border-radius:20px}}
+.sheet h2{margin:0 0 4px;font-size:19px}
+.field{margin:10px 0}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.session{border-left:4px solid var(--accent)}
+.empty{text-align:center;padding:30px 16px;color:var(--muted)}
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;transition:.2s;pointer-events:none;z-index:30}
+.toast.show{opacity:1}
+details summary{cursor:pointer;font-weight:600;color:var(--brand);font-size:13px;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">$</div>
+  <div class="grow"><h1>Weekly Budget</h1><div class="sub" id="hsub">Meal planner</div></div>
+  <span class="pill" id="sync" style="display:none"></span>
+  <button class="iconbtn" id="gear" aria-label="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+</header>
+<main id="view"></main>
+<nav><div class="in">
+  <button data-tab="plan" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Plan</button>
+  <button data-tab="prep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11h18v3a7 7 0 0 1-7 7h-4a7 7 0 0 1-7-7z"/><path d="M8 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4"/></svg>Prep</button>
+  <button data-tab="grocery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/></svg>Groceries</button>
+  <button data-tab="recipes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>Recipes</button>
+</div></nav>
+<div class="overlay" id="ov"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- Data ---------- */
+const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const SD=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const SLOTS=[['B','Breakfast'],['L','Lunch'],['D','Dinner'],['S','Snack'],['X','Dessert']];
+const CATS=['Breakfast','Lunch','Dinner','Snack','Dessert'];
+const AISLES=['Produce','Meat & Fish','Dairy & Eggs','Bakery','Pantry','Spices & Sauces','Frozen','Other'];
+const UNITS=['g','kg','ml','l','tbsp','tsp','cup','pc','can','jar','clove','head','bunch','pkg'];
+
+// ingredient: [name, qty, unit, aisle]
+const BUILT=[
+{id:'b1',name:'Berry Overnight Oats',cat:'Breakfast',e:'🥣',serv:4,time:10,fridge:5,cal:420,p:22,c:60,f:10,
+ ing:[['Rolled oats',320,'g','Pantry'],['Milk',960,'ml','Dairy & Eggs'],['Greek yogurt (plain)',400,'g','Dairy & Eggs'],['Chia seeds',4,'tbsp','Pantry'],['Mixed berries',400,'g','Frozen'],['Honey',4,'tbsp','Pantry']],
+ steps:['Divide oats, chia and yogurt between 4 jars.','Pour milk over each, add honey and stir well.','Top with berries, seal and refrigerate overnight.']},
+{id:'b2',name:'Spinach & Ham Egg Muffins',cat:'Breakfast',e:'🧁',serv:6,time:30,fridge:4,cal:260,p:20,c:4,f:18,
+ ing:[['Eggs',12,'pc','Dairy & Eggs'],['Baby spinach',100,'g','Produce'],['Bell pepper',2,'pc','Produce'],['Cheddar, shredded',100,'g','Dairy & Eggs'],['Deli ham',150,'g','Meat & Fish']],
+ steps:['Heat oven to 180°C / 350°F and grease a 12-cup muffin tin.','Chop spinach, pepper and ham; divide between cups.','Whisk eggs with salt and pepper, pour over, top with cheese.','Bake 20–22 min. Cool fully before boxing 2 per serving.']},
+{id:'b3',name:'Freezer Breakfast Burritos',cat:'Breakfast',e:'🌯',serv:6,time:40,fridge:3,cal:430,p:24,c:42,f:18,
+ ing:[['Eggs',12,'pc','Dairy & Eggs'],['Large tortillas',6,'pc','Bakery'],['Black beans',1,'can','Pantry'],['Potatoes',400,'g','Produce'],['Cheddar, shredded',120,'g','Dairy & Eggs'],['Salsa',250,'ml','Spices & Sauces']],
+ steps:['Dice and pan-fry potatoes until crisp, about 15 min.','Scramble eggs softly; rinse beans.','Fill tortillas with potatoes, eggs, beans, cheese and salsa; roll tight.','Wrap in foil. Keep 3 in the fridge, freeze the rest; reheat 2 min in microwave.']},
+{id:'l1',name:'Chicken Burrito Bowls',cat:'Lunch',e:'🌮',serv:4,time:35,fridge:4,cal:560,p:48,c:62,f:10,
+ ing:[['Chicken breast',700,'g','Meat & Fish'],['Rice (dry)',300,'g','Pantry'],['Black beans',1,'can','Pantry'],['Corn kernels',300,'g','Frozen'],['Salsa',250,'ml','Spices & Sauces'],['Taco seasoning',2,'tbsp','Spices & Sauces'],['Lime',2,'pc','Produce']],
+ steps:['Cook rice; stir in lime juice once done.','Season chicken with taco seasoning, cook 6–7 min per side, rest and slice.','Warm beans and corn together.','Divide rice, chicken, beans and corn into 4 containers; pack salsa on the side.']},
+{id:'l2',name:'Chicken Caesar Wraps',cat:'Lunch',e:'🥙',serv:4,time:25,fridge:3,cal:450,p:38,c:36,f:16,
+ ing:[['Chicken breast',500,'g','Meat & Fish'],['Large tortillas',4,'pc','Bakery'],['Romaine lettuce',1,'head','Produce'],['Parmesan',40,'g','Dairy & Eggs'],['Light Caesar dressing',120,'ml','Spices & Sauces']],
+ steps:['Grill or pan-fry chicken, cool and slice.','Chop romaine; toss with dressing and parmesan.','Fill and roll tortillas tightly; wrap in foil or parchment.','Store seam-side down; best eaten within 3 days.']},
+{id:'l3',name:'Greek Chicken Sheet Pan',cat:'Lunch',e:'🫒',serv:4,time:40,fridge:4,cal:520,p:46,c:40,f:18,
+ ing:[['Chicken breast',700,'g','Meat & Fish'],['Potatoes',800,'g','Produce'],['Zucchini',2,'pc','Produce'],['Red onion',1,'pc','Produce'],['Feta',100,'g','Dairy & Eggs'],['Olive oil',3,'tbsp','Pantry'],['Lemon',1,'pc','Produce'],['Dried oregano',2,'tsp','Spices & Sauces']],
+ steps:['Heat oven to 220°C / 425°F.','Cube potatoes; roast with oil, oregano and salt for 15 min.','Add cubed chicken, zucchini and onion; roast 20 min more.','Finish with lemon juice and crumbled feta, then portion.']},
+{id:'d1',name:'Teriyaki Chicken & Broccoli',cat:'Dinner',e:'🍱',serv:4,time:30,fridge:4,cal:590,p:45,c:66,f:14,
+ ing:[['Chicken thighs, boneless',800,'g','Meat & Fish'],['Broccoli',600,'g','Produce'],['Rice (dry)',300,'g','Pantry'],['Teriyaki sauce',180,'ml','Spices & Sauces'],['Sesame seeds',1,'tbsp','Spices & Sauces']],
+ steps:['Cook rice.','Brown chopped chicken thighs in a hot pan, 6–8 min.','Add teriyaki and simmer until sticky.','Steam broccoli 4 min (keep it crisp so it reheats well).','Portion and sprinkle with sesame seeds.']},
+{id:'d2',name:'Turkey Chili',cat:'Dinner',e:'🌶️',serv:6,time:45,fridge:5,cal:420,p:40,c:38,f:11,
+ ing:[['Lean ground turkey',900,'g','Meat & Fish'],['Kidney beans',2,'can','Pantry'],['Diced tomatoes',2,'can','Pantry'],['Onion',2,'pc','Produce'],['Bell pepper',2,'pc','Produce'],['Chili powder',3,'tbsp','Spices & Sauces']],
+ steps:['Sauté diced onion and pepper 5 min.','Add turkey and brown, breaking it up.','Stir in chili powder, tomatoes and drained beans.','Simmer 25 min. Freezes perfectly for up to 3 months.']},
+{id:'d3',name:'Beef Bulgogi Bowls',cat:'Dinner',e:'🥢',serv:4,time:30,fridge:4,cal:620,p:40,c:64,f:20,
+ ing:[['Lean ground beef',700,'g','Meat & Fish'],['Rice (dry)',300,'g','Pantry'],['Carrots',2,'pc','Produce'],['Cucumber',1,'pc','Produce'],['Soy sauce',80,'ml','Spices & Sauces'],['Brown sugar',2,'tbsp','Pantry'],['Garlic',4,'clove','Produce']],
+ steps:['Cook rice.','Brown beef with minced garlic.','Add soy sauce and brown sugar; cook until glossy.','Julienne carrots and slice cucumber; keep them in a separate compartment.']},
+{id:'d4',name:'Salmon, Sweet Potato & Green Beans',cat:'Dinner',e:'🐟',serv:4,time:35,fridge:3,cal:500,p:35,c:42,f:20,
+ ing:[['Salmon fillets',600,'g','Meat & Fish'],['Sweet potatoes',800,'g','Produce'],['Green beans',400,'g','Produce'],['Olive oil',2,'tbsp','Pantry'],['Lemon',1,'pc','Produce']],
+ steps:['Heat oven to 210°C / 400°F.','Roast cubed sweet potato with oil for 15 min.','Add salmon and green beans to the tray; roast 12–14 min.','Squeeze lemon over and portion. Eat within 3 days.']},
+{id:'d5',name:'Turkey Bolognese Pasta',cat:'Dinner',e:'🍝',serv:6,time:35,fridge:4,cal:560,p:38,c:66,f:14,
+ ing:[['Pasta (dry)',500,'g','Pantry'],['Lean ground turkey',700,'g','Meat & Fish'],['Marinara sauce',1,'jar','Pantry'],['Onion',1,'pc','Produce'],['Parmesan',60,'g','Dairy & Eggs']],
+ steps:['Cook pasta 1 min short of al dente; drain and toss with a little oil.','Brown onion and turkey, add marinara and simmer 15 min.','Mix sauce through pasta and portion; top with parmesan.']},
+{id:'s1',name:'PB Chocolate Energy Bites',cat:'Snack',e:'🍫',serv:6,time:15,fridge:7,cal:240,p:7,c:30,f:11,
+ ing:[['Rolled oats',160,'g','Pantry'],['Peanut butter',120,'g','Pantry'],['Honey',5,'tbsp','Pantry'],['Chocolate chips',60,'g','Pantry']],
+ steps:['Mix everything in a bowl.','Chill 15 min, then roll into 12 balls.','Store 2 per serving in the fridge.']},
+{id:'s2',name:'Hummus Snack Boxes',cat:'Snack',e:'🥕',serv:4,time:15,fridge:4,cal:220,p:7,c:26,f:10,
+ ing:[['Hummus',400,'g','Dairy & Eggs'],['Carrots',3,'pc','Produce'],['Cucumber',1,'pc','Produce'],['Bell pepper',1,'pc','Produce'],['Pita bread',2,'pc','Bakery']],
+ steps:['Cut veg into sticks and pita into wedges.','Divide hummus into small cups.','Pack veg, pita and hummus into 4 boxes.']},
+{id:'s3',name:'Greek Yogurt Parfait Cups',cat:'Snack',e:'🍓',serv:4,time:10,fridge:4,cal:280,p:22,c:34,f:6,
+ ing:[['Greek yogurt (plain)',800,'g','Dairy & Eggs'],['Granola',160,'g','Pantry'],['Mixed berries',300,'g','Frozen']],
+ steps:['Layer yogurt and berries in 4 jars.','Pack granola separately so it stays crunchy.']},
+{id:'b4',name:'PB Banana Oatmeal Jars',cat:'Breakfast',e:'🍌',serv:4,time:10,fridge:4,cal:450,p:17,c:62,f:15,
+ ing:[['Rolled oats',320,'g','Pantry'],['Bananas',4,'pc','Produce'],['Peanut butter',120,'g','Pantry'],['Milk',960,'ml','Dairy & Eggs']],
+ steps:['Divide oats and milk between 4 jars and stir.','Add a spoon of peanut butter and sliced banana to each.','Refrigerate overnight; eat cold or microwave 2 min.']},
+{id:'l4',name:'Egg Fried Rice',cat:'Lunch',e:'🍳',serv:4,time:25,fridge:4,cal:430,p:16,c:68,f:10,
+ ing:[['Rice (dry)',300,'g','Pantry'],['Eggs',6,'pc','Dairy & Eggs'],['Frozen peas & carrots',500,'g','Frozen'],['Soy sauce',60,'ml','Spices & Sauces'],['Green onions',1,'bunch','Produce']],
+ steps:['Cook rice and spread it on a tray to cool (cold rice fries best).','Scramble eggs in a hot pan, then set aside.','Fry peas and carrots 3 min, add rice and soy sauce.','Fold eggs and green onions back in, then portion.']},
+{id:'l5',name:'Black Bean & Rice Bowls',cat:'Lunch',e:'🫘',serv:4,time:25,fridge:4,cal:470,p:18,c:82,f:8,
+ ing:[['Rice (dry)',300,'g','Pantry'],['Black beans',2,'can','Pantry'],['Corn kernels',300,'g','Frozen'],['Salsa',250,'ml','Spices & Sauces'],['Cheddar, shredded',80,'g','Dairy & Eggs']],
+ steps:['Cook rice.','Warm beans and corn together with a pinch of salt.','Portion rice, beans and corn; top with cheese.','Pack salsa on the side.']},
+{id:'d6',name:'Red Lentil Curry',cat:'Dinner',e:'🍛',serv:6,time:35,fridge:5,cal:480,p:20,c:80,f:9,
+ ing:[['Red lentils',500,'g','Pantry'],['Coconut milk',1,'can','Pantry'],['Diced tomatoes',1,'can','Pantry'],['Onion',1,'pc','Produce'],['Garlic',3,'clove','Produce'],['Curry powder',2,'tbsp','Spices & Sauces'],['Rice (dry)',400,'g','Pantry']],
+ steps:['Cook rice.','Soften diced onion and garlic 5 min; add curry powder.','Add lentils, tomatoes, coconut milk and 750 ml water.','Simmer 20 min until thick. Freezes well.']},
+{id:'s4',name:'Apple & Peanut Butter Packs',cat:'Snack',e:'🍎',serv:4,time:5,fridge:5,cal:230,p:6,c:25,f:13,
+ ing:[['Apples',4,'pc','Produce'],['Peanut butter',120,'g','Pantry']],
+ steps:['Portion peanut butter into small cups.','Pack a whole apple with each (slice it when you eat it so it stays fresh).']}
+];
+
+// Estimated Ontario grocery prices (CAD): name|unit -> [pack size, pack price, pantry staple?]
+const PRICES={
+'rolled oats|g':[1000,5],'milk|ml':[4000,6.5],'greek yogurt (plain)|g':[750,6.5],'chia seeds|tbsp':[30,7,1],'mixed berries|g':[600,7],'honey|tbsp':[24,7,1],
+'eggs|pc':[12,4.8],'baby spinach|g':[142,4],'bell pepper|pc':[1,1.75],'cheddar, shredded|g':[320,7],'deli ham|g':[175,4.5],'large tortillas|pc':[8,4.5],
+'black beans|can':[1,1.5],'potatoes|g':[2270,5],'salsa|ml':[650,4.5],'chicken breast|g':[1000,18],'rice (dry)|g':[2000,6],'corn kernels|g':[750,3.5],
+'taco seasoning|tbsp':[2,1.5],'lime|pc':[1,.6],'romaine lettuce|head':[1,3],'parmesan|g':[200,7],'light caesar dressing|ml':[475,5],'zucchini|pc':[1,1.5],
+'red onion|pc':[1,1.2],'feta|g':[200,5.5],'olive oil|tbsp':[67,12,1],'lemon|pc':[1,.9],'dried oregano|tsp':[30,3,1],'chicken thighs, boneless|g':[1000,14],
+'broccoli|g':[450,3],'teriyaki sauce|ml':[350,4],'sesame seeds|tbsp':[15,3,1],'lean ground turkey|g':[450,7],'kidney beans|can':[1,1.5],'diced tomatoes|can':[1,1.75],
+'onion|pc':[1,.6],'chili powder|tbsp':[20,3.5,1],'lean ground beef|g':[450,6.5],'carrots|pc':[12,2.5],'cucumber|pc':[1,1.5],'soy sauce|ml':[500,3.5,1],
+'brown sugar|tbsp':[100,3.5,1],'garlic|clove':[10,.7],'salmon fillets|g':[1000,30],'sweet potatoes|g':[1000,4],'green beans|g':[454,4],'pasta (dry)|g':[900,3],
+'marinara sauce|jar':[1,4.5],'peanut butter|g':[1000,6],'chocolate chips|g':[300,4.5],'hummus|g':[227,4.5],'pita bread|pc':[6,3.5],'granola|g':[500,5.5],'bananas|pc':[1,.3],'frozen peas & carrots|g':[750,3],'green onions|bunch':[1,1.2],'red lentils|g':[900,4],'coconut milk|can':[1,2],'curry powder|tbsp':[20,3.5,1],'apples|pc':[1,.6]};
+
+// ---- Expanded recipe library ----
+const MORE=[
+// Breakfasts
+{id:'x1',name:'Cottage Cheese Protein Pancakes',cat:'Breakfast',e:'🥞',serv:4,time:25,fridge:4,cal:380,p:30,c:40,f:9,cuisine:'Classic',family:1,
+ ing:[['Cottage cheese',500,'g','Dairy & Eggs'],['Eggs',4,'pc','Dairy & Eggs'],['Rolled oats',160,'g','Pantry'],['Bananas',2,'pc','Produce'],['Maple syrup',4,'tbsp','Pantry']],
+ steps:['Blend cottage cheese, eggs, oats and bananas until smooth.','Cook ¼-cup portions in a non-stick pan, 2 min per side.','Cool on a rack, then box 3–4 per serving with syrup on the side.','Reheat 45 sec in the microwave or in a toaster.']},
+{id:'x2',name:'Turkey Sausage Breakfast Sandwiches',cat:'Breakfast',e:'🥪',serv:6,time:30,fridge:4,cal:380,p:28,c:30,f:16,cuisine:'Classic',family:1,
+ ing:[['English muffins',6,'pc','Bakery'],['Eggs',6,'pc','Dairy & Eggs'],['Turkey breakfast sausage',375,'g','Meat & Fish'],['Cheddar, shredded',90,'g','Dairy & Eggs']],
+ steps:['Shape sausage into 6 thin patties and cook 4 min per side.','Bake eggs in a greased muffin tin at 180°C / 350°F for 15 min.','Build sandwiches with egg, patty and cheese.','Wrap each in parchment. Fridge 4 days or freeze; microwave 1–2 min.']},
+{id:'x3',name:'Spinach Feta Egg Bites',cat:'Breakfast',e:'🥚',serv:6,time:30,fridge:4,cal:210,p:17,c:5,f:13,cuisine:'Mediterranean',
+ ing:[['Eggs',10,'pc','Dairy & Eggs'],['Cottage cheese',250,'g','Dairy & Eggs'],['Baby spinach',100,'g','Produce'],['Cherry tomatoes',200,'g','Produce'],['Feta',80,'g','Dairy & Eggs']],
+ steps:['Heat oven to 160°C / 325°F and grease a 12-cup muffin tin.','Blend eggs with cottage cheese until smooth.','Divide chopped spinach, tomatoes and feta between cups; pour egg over.','Bake 22–25 min until just set. 2 bites per serving.']},
+{id:'x4',name:'Berry Chia Pudding',cat:'Breakfast',e:'🫙',serv:4,time:10,fridge:5,cal:330,p:14,c:32,f:17,cuisine:'Classic',
+ ing:[['Chia seeds',8,'tbsp','Pantry'],['Milk',960,'ml','Dairy & Eggs'],['Greek yogurt (plain)',200,'g','Dairy & Eggs'],['Mixed berries',300,'g','Frozen'],['Maple syrup',2,'tbsp','Pantry']],
+ steps:['Whisk chia, milk, yogurt and maple syrup.','Rest 10 min, whisk again to break up clumps.','Divide into jars, top with berries and refrigerate overnight.']},
+{id:'x5',name:'Baked Apple Cinnamon Oatmeal',cat:'Breakfast',e:'🍏',serv:6,time:45,fridge:5,cal:320,p:11,c:52,f:8,cuisine:'Classic',family:1,comfort:1,
+ ing:[['Rolled oats',300,'g','Pantry'],['Milk',720,'ml','Dairy & Eggs'],['Eggs',2,'pc','Dairy & Eggs'],['Apples',2,'pc','Produce'],['Maple syrup',4,'tbsp','Pantry'],['Cinnamon',2,'tsp','Spices & Sauces'],['Baking powder',1,'tsp','Pantry']],
+ steps:['Heat oven to 190°C / 375°F.','Mix oats, cinnamon and baking powder; whisk in milk, eggs and syrup.','Fold in diced apple and pour into a greased 9×13 dish.','Bake 35 min. Cool, cut into 6 squares and box.']},
+{id:'x6',name:'Smoked Salmon Egg Wraps',cat:'Breakfast',e:'🐟',serv:4,time:15,fridge:3,cal:390,p:27,c:32,f:17,cuisine:'Classic',
+ ing:[['Large tortillas',4,'pc','Bakery'],['Smoked salmon',200,'g','Meat & Fish'],['Eggs',6,'pc','Dairy & Eggs'],['Cream cheese',100,'g','Dairy & Eggs'],['Baby spinach',60,'g','Produce']],
+ steps:['Softly scramble the eggs and let them cool.','Spread cream cheese on each tortilla.','Layer spinach, egg and salmon; roll tightly.','Wrap in foil. Eat cold or warm in a pan.']},
+{id:'x7',name:'Huevos Rancheros Bowls',cat:'Breakfast',e:'🍳',serv:4,time:30,fridge:4,cal:420,p:20,c:50,f:15,cuisine:'Mexican',comfort:1,
+ ing:[['Eggs',8,'pc','Dairy & Eggs'],['Black beans',1,'can','Pantry'],['Potatoes',500,'g','Produce'],['Salsa',250,'ml','Spices & Sauces'],['Cheddar, shredded',60,'g','Dairy & Eggs']],
+ steps:['Roast diced potatoes at 220°C / 425°F for 25 min.','Scramble eggs; warm beans.','Divide potatoes, beans and eggs; top with cheese.','Pack salsa separately.']},
+{id:'x8',name:'Ham & Cheese Breakfast Quesadillas',cat:'Breakfast',e:'🧀',serv:4,time:20,fridge:4,cal:410,p:26,c:34,f:18,cuisine:'Classic',family:1,
+ ing:[['Large tortillas',4,'pc','Bakery'],['Eggs',6,'pc','Dairy & Eggs'],['Deli ham',150,'g','Meat & Fish'],['Cheddar, shredded',100,'g','Dairy & Eggs']],
+ steps:['Scramble the eggs.','Fill half of each tortilla with egg, ham and cheese; fold.','Toast in a dry pan 2–3 min per side.','Cool, cut in halves and wrap.']},
+{id:'x9',name:'Tofu Scramble Burritos',cat:'Breakfast',e:'🌯',serv:4,time:25,fridge:4,cal:400,p:22,c:44,f:15,cuisine:'Mexican',
+ ing:[['Firm tofu',450,'g','Produce'],['Large tortillas',4,'pc','Bakery'],['Black beans',1,'can','Pantry'],['Bell pepper',1,'pc','Produce'],['Salsa',200,'ml','Spices & Sauces'],['Turmeric',1,'tsp','Spices & Sauces']],
+ steps:['Crumble tofu into a hot oiled pan with diced pepper and turmeric; cook 8 min.','Stir in rinsed beans.','Fill tortillas, add a spoon of salsa and roll.','Wrap in foil; fridge or freeze.']},
+// Lunches
+{id:'y1',name:'Chicken Shawarma Bowls',cat:'Lunch',e:'🥙',serv:4,time:35,fridge:4,cal:560,p:45,c:55,f:17,cuisine:'Mediterranean',
+ ing:[['Chicken thighs, boneless',700,'g','Meat & Fish'],['Rice (dry)',300,'g','Pantry'],['Cucumber',1,'pc','Produce'],['Cherry tomatoes',250,'g','Produce'],['Greek yogurt (plain)',200,'g','Dairy & Eggs'],['Ground cumin',2,'tsp','Spices & Sauces'],['Paprika',2,'tsp','Spices & Sauces'],['Garlic',3,'clove','Produce'],['Lemon',1,'pc','Produce']],
+ steps:['Toss chicken with cumin, paprika, half the garlic, lemon juice and salt.','Roast at 220°C / 425°F for 20 min, then slice.','Cook rice; chop cucumber and tomatoes.','Stir remaining garlic into yogurt for a quick sauce; pack on the side.']},
+{id:'y2',name:'Tuna Pasta Salad',cat:'Lunch',e:'🐟',serv:4,time:20,fridge:3,cal:480,p:32,c:55,f:13,cuisine:'Classic',family:1,
+ ing:[['Pasta (dry)',300,'g','Pantry'],['Canned tuna',2,'can','Pantry'],['Cucumber',1,'pc','Produce'],['Frozen peas & carrots',250,'g','Frozen'],['Light mayonnaise',120,'ml','Spices & Sauces'],['Lemon',1,'pc','Produce']],
+ steps:['Cook pasta, adding peas and carrots for the last 2 min; rinse cold.','Mix mayo with lemon juice, salt and pepper.','Toss pasta, drained tuna and diced cucumber with the dressing.','Portion and keep cold.']},
+{id:'y3',name:'Sesame Chicken Noodle Salad',cat:'Lunch',e:'🥢',serv:4,time:25,fridge:4,cal:520,p:38,c:58,f:14,cuisine:'Asian',
+ ing:[['Chicken breast',500,'g','Meat & Fish'],['Rice noodles',250,'g','Pantry'],['Red cabbage',1,'head','Produce'],['Carrots',2,'pc','Produce'],['Frozen edamame',300,'g','Frozen'],['Soy sauce',60,'ml','Spices & Sauces'],['Sesame oil',2,'tbsp','Spices & Sauces']],
+ steps:['Cook and slice the chicken.','Soak noodles per package; cook edamame 3 min.','Shred half the cabbage and the carrots.','Toss everything with soy sauce and sesame oil; portion.']},
+{id:'y4',name:'Mediterranean Chickpea Quinoa Jars',cat:'Lunch',e:'🫙',serv:4,time:20,fridge:5,cal:520,p:20,c:62,f:21,cuisine:'Mediterranean',
+ ing:[['Quinoa',200,'g','Pantry'],['Chickpeas',2,'can','Pantry'],['Cucumber',1,'pc','Produce'],['Cherry tomatoes',300,'g','Produce'],['Red onion',1,'pc','Produce'],['Feta',100,'g','Dairy & Eggs'],['Olive oil',3,'tbsp','Pantry'],['Lemon',1,'pc','Produce']],
+ steps:['Cook quinoa and cool.','Whisk olive oil, lemon juice, salt and pepper in the bottom of each jar.','Layer chickpeas, onion, cucumber, tomatoes, quinoa, then feta.','Shake into a bowl when ready to eat.']},
+{id:'y5',name:'Turkey Taco Lettuce Bowls',cat:'Lunch',e:'🥬',serv:4,time:25,fridge:4,cal:360,p:36,c:14,f:17,cuisine:'Mexican',
+ ing:[['Lean ground turkey',700,'g','Meat & Fish'],['Taco seasoning',2,'tbsp','Spices & Sauces'],['Romaine lettuce',1,'head','Produce'],['Cherry tomatoes',250,'g','Produce'],['Cheddar, shredded',80,'g','Dairy & Eggs'],['Salsa',200,'ml','Spices & Sauces']],
+ steps:['Brown turkey, add taco seasoning and a splash of water.','Chop lettuce and tomatoes; keep them in a separate compartment.','Portion meat with cheese; pack salsa on the side.','Reheat the meat only, then pile on the cold toppings.']},
+{id:'y6',name:'Chicken Pesto Pasta',cat:'Lunch',e:'🍝',serv:4,time:25,fridge:4,cal:590,p:42,c:58,f:20,cuisine:'Italian',family:1,
+ ing:[['Chicken breast',500,'g','Meat & Fish'],['Pasta (dry)',300,'g','Pantry'],['Basil pesto',120,'ml','Spices & Sauces'],['Cherry tomatoes',250,'g','Produce'],['Baby spinach',100,'g','Produce'],['Parmesan',30,'g','Dairy & Eggs']],
+ steps:['Cook pasta; save a little pasta water.','Cook and slice chicken.','Toss pasta with pesto, spinach (it wilts) and a splash of pasta water.','Add chicken and halved tomatoes; top with parmesan and portion.']},
+{id:'y7',name:'Peanut Chicken Rice Bowls',cat:'Lunch',e:'🥜',serv:4,time:30,fridge:4,cal:590,p:42,c:60,f:20,cuisine:'Asian',
+ ing:[['Chicken breast',600,'g','Meat & Fish'],['Rice (dry)',300,'g','Pantry'],['Peanut butter',80,'g','Pantry'],['Soy sauce',60,'ml','Spices & Sauces'],['Lime',1,'pc','Produce'],['Frozen stir-fry vegetables',500,'g','Frozen'],['Garlic',2,'clove','Produce']],
+ steps:['Cook rice.','Whisk peanut butter, soy sauce, lime juice, garlic and hot water into a sauce.','Stir-fry diced chicken 6 min, add veg for 4 min.','Toss with sauce and portion over rice.']},
+{id:'y8',name:'Hearty Lentil Vegetable Soup',cat:'Lunch',e:'🍲',serv:6,time:40,fridge:5,cal:320,p:17,c:52,f:5,cuisine:'Classic',comfort:1,
+ ing:[['Brown lentils',400,'g','Pantry'],['Carrots',3,'pc','Produce'],['Onion',1,'pc','Produce'],['Celery',1,'bunch','Produce'],['Diced tomatoes',1,'can','Pantry'],['Vegetable broth',1800,'ml','Pantry'],['Garlic',3,'clove','Produce']],
+ steps:['Sauté diced onion, carrot and 3 celery stalks for 6 min.','Add garlic, rinsed lentils, tomatoes and broth.','Simmer 25–30 min until lentils are tender.','Season, cool and portion. Freezes for 3 months.']},
+{id:'y9',name:'Greek Turkey Meatball Bowls',cat:'Lunch',e:'🧆',serv:4,time:35,fridge:4,cal:540,p:40,c:50,f:19,cuisine:'Mediterranean',family:1,
+ ing:[['Lean ground turkey',600,'g','Meat & Fish'],['Eggs',1,'pc','Dairy & Eggs'],['Rice (dry)',300,'g','Pantry'],['Cucumber',1,'pc','Produce'],['Cherry tomatoes',250,'g','Produce'],['Greek yogurt (plain)',200,'g','Dairy & Eggs'],['Feta',60,'g','Dairy & Eggs'],['Dried oregano',2,'tsp','Spices & Sauces']],
+ steps:['Mix turkey, egg, oregano and salt; roll into 20 meatballs.','Bake at 200°C / 400°F for 18 min.','Cook rice; chop cucumber and tomatoes.','Portion with yogurt sauce and crumbled feta.']},
+{id:'y10',name:'Cajun Chicken & Sweet Potato',cat:'Lunch',e:'🍠',serv:4,time:35,fridge:4,cal:480,p:42,c:45,f:13,cuisine:'Classic',spicy:1,
+ ing:[['Chicken breast',700,'g','Meat & Fish'],['Sweet potatoes',800,'g','Produce'],['Broccoli',450,'g','Produce'],['Cajun seasoning',2,'tbsp','Spices & Sauces'],['Olive oil',2,'tbsp','Pantry']],
+ steps:['Heat oven to 220°C / 425°F.','Toss cubed sweet potato with oil and half the Cajun spice; roast 15 min.','Add Cajun-rubbed chicken and broccoli; roast 18 min more.','Slice chicken and portion.']},
+{id:'y11',name:'Chicken Cobb Salad Boxes',cat:'Lunch',e:'🥗',serv:4,time:25,fridge:3,cal:430,p:38,c:12,f:26,cuisine:'Classic',
+ ing:[['Chicken breast',500,'g','Meat & Fish'],['Eggs',4,'pc','Dairy & Eggs'],['Romaine lettuce',1,'head','Produce'],['Cherry tomatoes',250,'g','Produce'],['Bacon',150,'g','Meat & Fish'],['Ranch dressing',120,'ml','Spices & Sauces']],
+ steps:['Cook and dice chicken; cook bacon until crisp and crumble.','Hard-boil eggs 10 min, cool and quarter.','Chop lettuce and halve tomatoes.','Arrange in boxes; dressing goes on the side.']},
+{id:'y12',name:'Sweet Potato Black Bean Quinoa Bowls',cat:'Lunch',e:'🌽',serv:4,time:35,fridge:5,cal:480,p:18,c:78,f:11,cuisine:'Mexican',
+ ing:[['Quinoa',250,'g','Pantry'],['Sweet potatoes',600,'g','Produce'],['Black beans',1,'can','Pantry'],['Corn kernels',300,'g','Frozen'],['Salsa',200,'ml','Spices & Sauces'],['Lime',1,'pc','Produce'],['Olive oil',1,'tbsp','Pantry']],
+ steps:['Roast cubed sweet potato with oil at 220°C / 425°F for 25 min.','Cook quinoa; stir in lime juice.','Warm beans and corn.','Portion everything; salsa on the side.']},
+// Dinners
+{id:'z1',name:'Butter Chicken & Rice',cat:'Dinner',e:'🍛',serv:6,time:40,fridge:4,cal:560,p:40,c:55,f:19,cuisine:'Indian',family:1,comfort:1,
+ ing:[['Chicken thighs, boneless',900,'g','Meat & Fish'],['Butter chicken sauce',1,'jar','Spices & Sauces'],['Rice (dry)',450,'g','Pantry'],['Onion',1,'pc','Produce'],['Greek yogurt (plain)',150,'g','Dairy & Eggs']],
+ steps:['Cook rice.','Brown diced chicken and onion, 8 min.','Add sauce and simmer 15 min; stir in yogurt off the heat.','Portion over rice. Freezes well.']},
+{id:'z2',name:'Sheet Pan Sausage & Veggies',cat:'Dinner',e:'🌭',serv:4,time:35,fridge:4,cal:520,p:26,c:42,f:27,cuisine:'Classic',family:1,
+ ing:[['Italian sausage',500,'g','Meat & Fish'],['Potatoes',800,'g','Produce'],['Bell pepper',2,'pc','Produce'],['Red onion',1,'pc','Produce'],['Broccoli',450,'g','Produce'],['Olive oil',2,'tbsp','Pantry']],
+ steps:['Heat oven to 220°C / 425°F.','Roast cubed potatoes with oil for 15 min.','Add sliced sausage, peppers, onion and broccoli; roast 20 min.','Portion into containers.']},
+{id:'z3',name:'Beef & Broccoli',cat:'Dinner',e:'🥦',serv:4,time:25,fridge:4,cal:560,p:40,c:60,f:16,cuisine:'Asian',family:1,
+ ing:[['Beef stir-fry strips',600,'g','Meat & Fish'],['Broccoli',600,'g','Produce'],['Rice (dry)',300,'g','Pantry'],['Soy sauce',60,'ml','Spices & Sauces'],['Brown sugar',2,'tbsp','Pantry'],['Garlic',3,'clove','Produce'],['Cornstarch',1,'tbsp','Pantry']],
+ steps:['Cook rice.','Toss beef with cornstarch; sear in batches in a very hot pan.','Steam broccoli 3 min.','Add soy, sugar, garlic and a splash of water; toss everything and portion.']},
+{id:'z4',name:'Chicken Enchilada Bake',cat:'Dinner',e:'🫔',serv:6,time:45,fridge:4,cal:540,p:38,c:50,f:20,cuisine:'Mexican',family:1,comfort:1,
+ ing:[['Chicken breast',700,'g','Meat & Fish'],['Large tortillas',6,'pc','Bakery'],['Enchilada sauce',1,'can','Spices & Sauces'],['Black beans',1,'can','Pantry'],['Cheddar, shredded',150,'g','Dairy & Eggs'],['Corn kernels',300,'g','Frozen']],
+ steps:['Poach chicken 15 min and shred.','Mix chicken, beans, corn and half the sauce.','Layer tortillas and filling in a 9×13 dish; top with sauce and cheese.','Bake at 190°C / 375°F for 20 min. Cut into 6.']},
+{id:'z5',name:'Honey Garlic Pork Tenderloin',cat:'Dinner',e:'🍯',serv:4,time:35,fridge:4,cal:510,p:38,c:55,f:13,cuisine:'Classic',family:1,
+ ing:[['Pork tenderloin',700,'g','Meat & Fish'],['Honey',3,'tbsp','Pantry'],['Soy sauce',60,'ml','Spices & Sauces'],['Garlic',4,'clove','Produce'],['Rice (dry)',300,'g','Pantry'],['Green beans',400,'g','Produce']],
+ steps:['Mix honey, soy and garlic; coat the pork.','Roast at 200°C / 400°F for 22–25 min (63°C inside), add green beans for the last 12 min.','Rest 5 min and slice.','Portion over rice with pan juices.']},
+{id:'z6',name:'Garlic Shrimp Stir-Fry',cat:'Dinner',e:'🍤',serv:4,time:20,fridge:3,cal:450,p:32,c:58,f:9,cuisine:'Asian',
+ ing:[['Frozen shrimp',600,'g','Frozen'],['Frozen stir-fry vegetables',750,'g','Frozen'],['Rice (dry)',300,'g','Pantry'],['Soy sauce',60,'ml','Spices & Sauces'],['Garlic',4,'clove','Produce'],['Sesame oil',1,'tbsp','Spices & Sauces']],
+ steps:['Cook rice.','Stir-fry vegetables 4 min in a hot pan.','Add thawed shrimp and garlic; cook 3 min until pink.','Toss with soy and sesame oil; portion. Eat within 3 days.']},
+{id:'z7',name:'Chickpea Spinach Coconut Curry',cat:'Dinner',e:'🥥',serv:6,time:30,fridge:5,cal:470,p:15,c:66,f:16,cuisine:'Indian',spicy:1,comfort:1,
+ ing:[['Chickpeas',2,'can','Pantry'],['Coconut milk',1,'can','Pantry'],['Diced tomatoes',1,'can','Pantry'],['Baby spinach',150,'g','Produce'],['Onion',1,'pc','Produce'],['Curry powder',2,'tbsp','Spices & Sauces'],['Rice (dry)',400,'g','Pantry']],
+ steps:['Cook rice.','Soften onion 5 min; add curry powder for 1 min.','Add chickpeas, tomatoes and coconut milk; simmer 15 min.','Stir in spinach until wilted; portion over rice.']},
+{id:'z8',name:"Shepherd's Pie",cat:'Dinner',e:'🥧',serv:6,time:60,fridge:4,cal:520,p:34,c:45,f:21,cuisine:'Classic',family:1,comfort:1,
+ ing:[['Lean ground beef',900,'g','Meat & Fish'],['Potatoes',1200,'g','Produce'],['Frozen peas & carrots',500,'g','Frozen'],['Onion',1,'pc','Produce'],['Beef broth',250,'ml','Pantry'],['Milk',120,'ml','Dairy & Eggs'],['Butter',2,'tbsp','Dairy & Eggs']],
+ steps:['Boil potatoes 15 min; mash with milk and butter.','Brown beef and onion; add veg and broth, simmer 10 min.','Spread beef in a 9×13 dish and top with mash.','Bake at 200°C / 400°F for 20 min. Cut into 6; freezes well.']},
+{id:'z9',name:'Lemon Baked Cod & Rice',cat:'Dinner',e:'🐠',serv:4,time:30,fridge:3,cal:430,p:36,c:50,f:9,cuisine:'Mediterranean',
+ ing:[['Cod fillets',600,'g','Frozen'],['Rice (dry)',300,'g','Pantry'],['Green beans',400,'g','Produce'],['Lemon',1,'pc','Produce'],['Olive oil',2,'tbsp','Pantry'],['Paprika',1,'tsp','Spices & Sauces']],
+ steps:['Cook rice with lemon zest.','Lay cod and green beans on a tray; drizzle with oil, paprika and lemon juice.','Bake at 200°C / 400°F for 12–15 min.','Portion. Best within 3 days.']},
+{id:'z10',name:'Stuffed Pepper Skillet',cat:'Dinner',e:'🫑',serv:6,time:35,fridge:4,cal:450,p:33,c:40,f:16,cuisine:'Classic',family:1,
+ ing:[['Lean ground beef',700,'g','Meat & Fish'],['Bell pepper',3,'pc','Produce'],['Rice (dry)',250,'g','Pantry'],['Diced tomatoes',1,'can','Pantry'],['Cheddar, shredded',100,'g','Dairy & Eggs'],['Onion',1,'pc','Produce']],
+ steps:['Brown beef with diced onion and peppers.','Add rice, tomatoes and 500 ml water; cover and simmer 18 min.','Top with cheese, cover 2 min to melt.','Portion.']},
+{id:'z11',name:'Pork Carnitas Bowls',cat:'Dinner',e:'🌮',serv:6,time:30,fridge:5,cal:590,p:38,c:55,f:23,cuisine:'Mexican',comfort:1,
+ ing:[['Pork shoulder',1200,'g','Meat & Fish'],['Rice (dry)',400,'g','Pantry'],['Black beans',1,'can','Pantry'],['Orange',1,'pc','Produce'],['Lime',2,'pc','Produce'],['Taco seasoning',2,'tbsp','Spices & Sauces'],['Salsa',250,'ml','Spices & Sauces']],
+ steps:['Rub pork with taco seasoning; slow cook 8 h on low (or pressure cook 60 min) with orange and lime juice.','Shred, then crisp under the broiler 5 min.','Cook rice; warm beans.','Portion with salsa on the side. Freezes well.']},
+{id:'z12',name:'Creamy Chicken Mushroom Orzo',cat:'Dinner',e:'🍄',serv:4,time:30,fridge:4,cal:560,p:42,c:55,f:18,cuisine:'Italian',comfort:1,
+ ing:[['Chicken breast',600,'g','Meat & Fish'],['Orzo',300,'g','Pantry'],['Mushrooms',227,'g','Produce'],['Baby spinach',100,'g','Produce'],['Parmesan',50,'g','Dairy & Eggs'],['Chicken broth',900,'ml','Pantry'],['Garlic',3,'clove','Produce']],
+ steps:['Brown diced chicken; set aside.','Cook sliced mushrooms and garlic 5 min.','Add orzo and broth; simmer 10 min, stirring.','Stir in chicken, spinach and parmesan; portion.']},
+{id:'z13',name:'Black Bean Sweet Potato Enchiladas',cat:'Dinner',e:'🫘',serv:6,time:45,fridge:4,cal:470,p:20,c:62,f:16,cuisine:'Mexican',comfort:1,
+ ing:[['Large tortillas',6,'pc','Bakery'],['Black beans',2,'can','Pantry'],['Sweet potatoes',600,'g','Produce'],['Enchilada sauce',1,'can','Spices & Sauces'],['Cheddar, shredded',120,'g','Dairy & Eggs'],['Corn kernels',300,'g','Frozen']],
+ steps:['Microwave or roast diced sweet potato until soft; mash lightly.','Mix with beans, corn and a third of the sauce.','Roll in tortillas, lay in a dish, top with sauce and cheese.','Bake at 190°C / 375°F for 20 min.']},
+{id:'z14',name:'Turkey Meatballs & Spaghetti',cat:'Dinner',e:'🍝',serv:6,time:40,fridge:4,cal:560,p:38,c:64,f:15,cuisine:'Italian',family:1,comfort:1,
+ ing:[['Lean ground turkey',900,'g','Meat & Fish'],['Eggs',1,'pc','Dairy & Eggs'],['Breadcrumbs',60,'g','Pantry'],['Marinara sauce',1,'jar','Pantry'],['Pasta (dry)',500,'g','Pantry'],['Parmesan',40,'g','Dairy & Eggs']],
+ steps:['Mix turkey, egg, breadcrumbs and half the parmesan; roll 24 meatballs.','Bake at 200°C / 400°F for 18 min.','Simmer meatballs in marinara 10 min; cook pasta.','Portion and top with remaining parmesan.']},
+{id:'z15',name:'Mediterranean Salmon & Quinoa',cat:'Dinner',e:'🍣',serv:4,time:30,fridge:3,cal:540,p:36,c:40,f:25,cuisine:'Mediterranean',
+ ing:[['Salmon fillets',600,'g','Meat & Fish'],['Quinoa',250,'g','Pantry'],['Zucchini',2,'pc','Produce'],['Cherry tomatoes',250,'g','Produce'],['Olive oil',2,'tbsp','Pantry'],['Lemon',1,'pc','Produce']],
+ steps:['Cook quinoa.','Roast zucchini and tomatoes with oil at 210°C / 400°F for 10 min.','Add salmon to the tray; roast 12 min.','Finish with lemon and portion.']},
+{id:'z16',name:'Chicken Fajita Cauliflower Rice Bowls',cat:'Dinner',e:'🌶️',serv:4,time:30,fridge:4,cal:380,p:42,c:18,f:15,cuisine:'Mexican',
+ ing:[['Chicken breast',700,'g','Meat & Fish'],['Frozen cauliflower rice',1000,'g','Frozen'],['Bell pepper',3,'pc','Produce'],['Onion',1,'pc','Produce'],['Taco seasoning',2,'tbsp','Spices & Sauces'],['Salsa',200,'ml','Spices & Sauces'],['Cheddar, shredded',60,'g','Dairy & Eggs']],
+ steps:['Sear sliced chicken with taco seasoning, 6 min.','Add sliced peppers and onion; cook 5 min.','Pan-fry cauliflower rice until dry, 6 min.','Portion with cheese; salsa on the side.']},
+{id:'z17',name:'Lemon Herb Chicken & Roasted Veg',cat:'Dinner',e:'🍋',serv:4,time:40,fridge:4,cal:420,p:38,c:14,f:23,cuisine:'Mediterranean',
+ ing:[['Chicken thighs, boneless',900,'g','Meat & Fish'],['Zucchini',2,'pc','Produce'],['Broccoli',450,'g','Produce'],['Cherry tomatoes',250,'g','Produce'],['Olive oil',2,'tbsp','Pantry'],['Lemon',1,'pc','Produce'],['Dried oregano',2,'tsp','Spices & Sauces']],
+ steps:['Marinate chicken in oil, lemon, oregano and salt for 10 min.','Spread chicken and chopped veg on a large tray.','Roast at 220°C / 425°F for 25 min.','Portion with the pan juices.']},
+{id:'z18',name:'Unstuffed Cabbage Roll Skillet',cat:'Dinner',e:'🥬',serv:6,time:40,fridge:5,cal:400,p:30,c:30,f:17,cuisine:'Classic',comfort:1,
+ ing:[['Lean ground beef',700,'g','Meat & Fish'],['Green cabbage',1,'head','Produce'],['Rice (dry)',150,'g','Pantry'],['Diced tomatoes',2,'can','Pantry'],['Onion',1,'pc','Produce']],
+ steps:['Brown beef with onion.','Add chopped cabbage, tomatoes, rice and 400 ml water.','Cover and simmer 25 min until cabbage and rice are tender.','Season and portion. Freezes well.']},
+// Snacks
+{id:'w1',name:'Egg & Cheese Protein Boxes',cat:'Snack',e:'🥚',serv:6,time:15,fridge:5,cal:230,p:16,c:4,f:17,cuisine:'Classic',
+ ing:[['Eggs',12,'pc','Dairy & Eggs'],['Cheddar block',120,'g','Dairy & Eggs'],['Cherry tomatoes',300,'g','Produce']],
+ steps:['Hard-boil eggs 10 min, then ice bath and peel.','Cube the cheese.','Pack 2 eggs, cheese and tomatoes per box.']},
+{id:'w2',name:'Cottage Cheese Berry Cups',cat:'Snack',e:'🍓',serv:4,time:5,fridge:4,cal:190,p:18,c:20,f:4,cuisine:'Classic',
+ ing:[['Cottage cheese',750,'g','Dairy & Eggs'],['Mixed berries',300,'g','Frozen']],
+ steps:['Divide cottage cheese into 4 cups.','Top with berries (frozen thaw nicely by lunch).']},
+{id:'w3',name:'Turkey & Cheese Roll-Ups',cat:'Snack',e:'🧀',serv:4,time:10,fridge:4,cal:200,p:18,c:4,f:12,cuisine:'Classic',family:1,
+ ing:[['Deli turkey',300,'g','Meat & Fish'],['Cheese strings',4,'pc','Dairy & Eggs'],['Cucumber',1,'pc','Produce']],
+ steps:['Roll turkey slices around halved cheese strings.','Slice cucumber into spears.','Pack together in small boxes.']},
+{id:'w4',name:'Crispy Roasted Chickpeas',cat:'Snack',e:'🫘',serv:6,time:40,fridge:7,cal:170,p:7,c:22,f:6,cuisine:'Classic',
+ ing:[['Chickpeas',2,'can','Pantry'],['Olive oil',2,'tbsp','Pantry'],['Paprika',2,'tsp','Spices & Sauces']],
+ steps:['Rinse and dry chickpeas very well.','Toss with oil, paprika and salt.','Roast at 200°C / 400°F for 30–35 min, shaking halfway.','Cool completely and store in a jar (not airtight, so they stay crisp).']},
+{id:'w5',name:'Sesame Edamame Cups',cat:'Snack',e:'🫛',serv:4,time:10,fridge:4,cal:190,p:17,c:13,f:8,cuisine:'Asian',
+ ing:[['Frozen edamame',600,'g','Frozen'],['Sesame seeds',1,'tbsp','Spices & Sauces']],
+ steps:['Boil edamame 4 min and drain.','Toss with sesame seeds and flaky salt.','Divide into 4 cups.']},
+{id:'w6',name:'Banana Oat Muffins',cat:'Snack',e:'🧁',serv:6,time:30,fridge:5,cal:250,p:7,c:38,f:8,cuisine:'Classic',family:1,
+ ing:[['Bananas',3,'pc','Produce'],['Rolled oats',200,'g','Pantry'],['Eggs',2,'pc','Dairy & Eggs'],['Milk',120,'ml','Dairy & Eggs'],['Maple syrup',4,'tbsp','Pantry'],['Baking powder',2,'tsp','Pantry'],['Chocolate chips',60,'g','Pantry']],
+ steps:['Heat oven to 180°C / 350°F.','Blend everything except chocolate chips; fold those in.','Fill a lined 12-cup muffin tin and bake 20 min.','2 muffins per serving; freeze extras.']},
+{id:'w7',name:'Trail Mix Packs',cat:'Snack',e:'🥜',serv:8,time:5,fridge:30,cal:220,p:6,c:20,f:14,cuisine:'Classic',
+ ing:[['Mixed nuts',300,'g','Pantry'],['Raisins',150,'g','Pantry'],['Chocolate chips',60,'g','Pantry']],
+ steps:['Mix everything.','Divide into 8 small bags.']},
+{id:'w8',name:'Cheese, Crackers & Grapes',cat:'Snack',e:'🍇',serv:4,time:10,fridge:4,cal:260,p:10,c:28,f:12,cuisine:'Classic',family:1,
+ ing:[['Whole grain crackers',200,'g','Pantry'],['Cheddar block',160,'g','Dairy & Eggs'],['Grapes',400,'g','Produce']],
+ steps:['Slice cheese.','Wash and dry grapes; pull into small clusters.','Pack crackers separately so they stay crisp.']}
+];
+BUILT.push(...MORE);
+Object.assign(PRICES,{'cottage cheese|g':[500,4.5],'maple syrup|tbsp':[25,9],'english muffins|pc':[6,3.5],'turkey breakfast sausage|g':[375,6],'cherry tomatoes|g':[283,4],
+'cinnamon|tsp':[40,3,1],'baking powder|tsp':[50,3,1],'smoked salmon|g':[200,9],'cream cheese|g':[250,4.5],'firm tofu|g':[454,3.5],'turmeric|tsp':[40,3,1],'ground cumin|tsp':[40,3,1],
+'paprika|tsp':[40,3,1],'canned tuna|can':[1,2],'light mayonnaise|ml':[890,6,1],'rice noodles|g':[454,3.5],'red cabbage|head':[1,3.5],'frozen edamame|g':[500,4.5],'sesame oil|tbsp':[20,5,1],
+'chickpeas|can':[1,1.5],'quinoa|g':[900,8],'basil pesto|ml':[190,5],'frozen stir-fry vegetables|g':[750,4],'brown lentils|g':[900,4],'celery|bunch':[1,3],'vegetable broth|ml':[900,2.5],
+'cajun seasoning|tbsp':[20,3.5,1],'bacon|g':[375,6.5],'ranch dressing|ml':[475,5],'butter chicken sauce|jar':[1,4.5],'italian sausage|g':[500,7],'beef stir-fry strips|g':[600,12],
+'cornstarch|tbsp':[40,3,1],'enchilada sauce|can':[1,3],'pork tenderloin|g':[700,10],'frozen shrimp|g':[680,14],'beef broth|ml':[900,2.5],'butter|tbsp':[30,6,1],'cod fillets|g':[600,13],
+'pork shoulder|g':[1200,12],'orange|pc':[1,.8],'orzo|g':[900,3.5],'mushrooms|g':[227,3],'chicken broth|ml':[900,2.5],'breadcrumbs|g':[425,3],'frozen cauliflower rice|g':[500,4],
+'green cabbage|head':[1,3],'deli turkey|g':[175,4.5],'cheese strings|pc':[8,6],'mixed nuts|g':[300,7],'raisins|g':[250,3],'whole grain crackers|g':[200,3.5],'cheddar block|g':[400,7.5],'grapes|g':[900,5]});
+
+// ---- Canadian classics ----
+const CDN=[
+{id:'c1',name:'Peameal Bacon Breakfast Sandwiches',cat:'Breakfast',e:'🥓',serv:6,time:25,fridge:4,cal:400,p:30,c:32,f:16,cuisine:'Canadian',family:1,
+ ing:[['Peameal bacon',600,'g','Meat & Fish'],['English muffins',6,'pc','Bakery'],['Eggs',6,'pc','Dairy & Eggs'],['Cheddar block',90,'g','Dairy & Eggs']],
+ steps:['Slice peameal bacon about 1 cm thick and fry 3 min per side.','Bake eggs in a greased muffin tin at 180°C / 350°F for 15 min.','Toast muffins; build with bacon, egg and a slice of cheddar.','Wrap each in parchment. Microwave 60–90 sec to reheat.']},
+{id:'c2',name:'Western Sandwiches',cat:'Breakfast',e:'🥪',serv:4,time:20,fridge:3,cal:420,p:26,c:34,f:19,cuisine:'Canadian',family:1,
+ ing:[['Eggs',8,'pc','Dairy & Eggs'],['Deli ham',150,'g','Meat & Fish'],['Onion',1,'pc','Produce'],['Bell pepper',1,'pc','Produce'],['Sandwich bread',8,'pc','Bakery'],['Butter',2,'tbsp','Dairy & Eggs']],
+ steps:['Finely dice ham, onion and pepper; soften in butter 4 min.','Pour in beaten eggs and cook as one big flat omelette; cut into 4.','Sandwich between toast.','Wrap and refrigerate; warm in a pan or microwave.']},
+{id:'c3',name:'French Toast Bake',cat:'Breakfast',e:'🍞',serv:6,time:50,fridge:4,cal:380,p:15,c:50,f:13,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Sandwich bread',10,'pc','Bakery'],['Eggs',6,'pc','Dairy & Eggs'],['Milk',480,'ml','Dairy & Eggs'],['Maple syrup',4,'tbsp','Pantry'],['Cinnamon',2,'tsp','Spices & Sauces']],
+ steps:['Cube bread into a greased 9×13 dish.','Whisk eggs, milk, cinnamon and half the syrup; pour over and press down.','Rest 10 min (or overnight), then bake at 180°C / 350°F for 35 min.','Cut into 6; drizzle with maple syrup when you eat it.']},
+{id:'c4',name:'Sausage Hash Brown Breakfast Bake',cat:'Breakfast',e:'🥔',serv:6,time:45,fridge:4,cal:430,p:24,c:26,f:26,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Frozen hash browns',900,'g','Frozen'],['Pork breakfast sausage',375,'g','Meat & Fish'],['Eggs',8,'pc','Dairy & Eggs'],['Cheddar, shredded',150,'g','Dairy & Eggs'],['Milk',120,'ml','Dairy & Eggs']],
+ steps:['Brown and crumble the sausage.','Spread hash browns in a greased 9×13 dish; top with sausage and cheese.','Pour over eggs whisked with milk.','Bake at 190°C / 375°F for 35 min. Cut into 6.']},
+{id:'c5',name:'Pancakes & Sausages',cat:'Breakfast',e:'🥞',serv:4,time:30,fridge:4,cal:480,p:20,c:55,f:20,cuisine:'Canadian',family:1,
+ ing:[['Pancake mix',400,'g','Pantry'],['Pork breakfast sausage',375,'g','Meat & Fish'],['Eggs',2,'pc','Dairy & Eggs'],['Maple syrup',6,'tbsp','Pantry']],
+ steps:['Make pancake batter per the box (add the eggs for fluffier pancakes).','Cook pancakes; bake or fry sausages 12–15 min.','Cool, then box 3 pancakes and 2–3 sausages per serving.','Reheat 60 sec; syrup on the side.']},
+{id:'c6',name:'Grilled Cheese & Tomato Soup',cat:'Lunch',e:'🧀',serv:4,time:20,fridge:3,cal:520,p:20,c:55,f:24,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Sandwich bread',8,'pc','Bakery'],['Cheddar block',200,'g','Dairy & Eggs'],['Butter',3,'tbsp','Dairy & Eggs'],['Tomato soup',2,'can','Pantry']],
+ steps:['Make the soup per the can and portion into containers.','Build cheddar sandwiches and grill in butter until golden.','Cool on a rack so they don\'t get soggy, then wrap.','Re-crisp in a pan, air fryer or toaster oven; microwave the soup.']},
+{id:'c7',name:'Chicken Noodle Soup',cat:'Lunch',e:'🍜',serv:6,time:40,fridge:4,cal:300,p:26,c:28,f:8,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Chicken breast',600,'g','Meat & Fish'],['Egg noodles',250,'g','Pantry'],['Carrots',2,'pc','Produce'],['Celery',1,'bunch','Produce'],['Onion',1,'pc','Produce'],['Chicken broth',1800,'ml','Pantry']],
+ steps:['Simmer whole chicken breasts in the broth 15 min; remove and shred.','Add diced onion, carrot and 2 celery stalks; simmer 10 min.','Add noodles for the last 7 min, then the chicken back in.','Portion. Noodles soak up broth, so add a splash of water when reheating.']},
+{id:'c8',name:'Homemade Mac & Cheese',cat:'Lunch',e:'🧀',serv:6,time:30,fridge:4,cal:560,p:24,c:60,f:24,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Pasta (dry)',450,'g','Pantry'],['Cheddar block',300,'g','Dairy & Eggs'],['Milk',720,'ml','Dairy & Eggs'],['Butter',3,'tbsp','Dairy & Eggs'],['All-purpose flour',3,'tbsp','Pantry']],
+ steps:['Cook macaroni 1 min short of the package time.','Melt butter, whisk in flour for 1 min, then slowly whisk in milk until thick.','Stir in grated cheddar off the heat; season.','Mix with pasta and portion. Add a splash of milk when reheating.']},
+{id:'c9',name:'Chicken Club Wraps',cat:'Lunch',e:'🌯',serv:4,time:20,fridge:3,cal:480,p:38,c:34,f:21,cuisine:'Canadian',family:1,
+ ing:[['Large tortillas',4,'pc','Bakery'],['Chicken breast',500,'g','Meat & Fish'],['Bacon',150,'g','Meat & Fish'],['Romaine lettuce',1,'head','Produce'],['Light mayonnaise',60,'ml','Spices & Sauces'],['Cheddar block',60,'g','Dairy & Eggs']],
+ steps:['Cook and slice chicken; crisp the bacon.','Spread tortillas with mayo.','Add lettuce, chicken, bacon and cheese; roll tight.','Wrap in foil and keep cold.']},
+{id:'c10',name:'Sloppy Joes',cat:'Lunch',e:'🍔',serv:6,time:25,fridge:4,cal:450,p:28,c:42,f:18,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Lean ground beef',900,'g','Meat & Fish'],['Hamburger buns',6,'pc','Bakery'],['Onion',1,'pc','Produce'],['Ketchup',180,'ml','Spices & Sauces'],['Brown sugar',1,'tbsp','Pantry'],['Mustard',1,'tbsp','Spices & Sauces']],
+ steps:['Brown beef with diced onion; drain.','Stir in ketchup, sugar, mustard and 125 ml water; simmer 10 min.','Portion the meat; keep buns separate so they don\'t go soggy.','Reheat meat and spoon onto a bun.']},
+{id:'c11',name:'Chicken Quesadillas',cat:'Lunch',e:'🫓',serv:4,time:25,fridge:4,cal:520,p:40,c:36,f:23,cuisine:'Canadian',family:1,
+ ing:[['Large tortillas',4,'pc','Bakery'],['Chicken breast',500,'g','Meat & Fish'],['Cheddar, shredded',160,'g','Dairy & Eggs'],['Taco seasoning',1,'tbsp','Spices & Sauces'],['Salsa',200,'ml','Spices & Sauces']],
+ steps:['Cook chicken with taco seasoning; dice.','Fill half of each tortilla with chicken and cheese; fold.','Toast in a dry pan 3 min per side.','Cool, cut into wedges and box; salsa on the side.']},
+{id:'c12',name:'Ham & Cheese Sliders',cat:'Lunch',e:'🍔',serv:6,time:25,fridge:3,cal:420,p:24,c:38,f:19,cuisine:'Canadian',family:1,
+ ing:[['Dinner rolls',12,'pc','Bakery'],['Deli ham',350,'g','Meat & Fish'],['Cheddar block',180,'g','Dairy & Eggs'],['Butter',2,'tbsp','Dairy & Eggs'],['Mustard',1,'tbsp','Spices & Sauces']],
+ steps:['Slice the whole slab of rolls in half sideways.','Layer ham and sliced cheese; put the tops back on.','Brush with melted butter mixed with mustard; bake at 180°C / 350°F for 15 min.','Cut apart; 2 sliders per serving.']},
+{id:'c13',name:'Spaghetti & Meat Sauce',cat:'Dinner',e:'🍝',serv:6,time:35,fridge:4,cal:580,p:36,c:66,f:18,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Lean ground beef',700,'g','Meat & Fish'],['Marinara sauce',1,'jar','Pantry'],['Pasta (dry)',500,'g','Pantry'],['Onion',1,'pc','Produce'],['Parmesan',40,'g','Dairy & Eggs']],
+ steps:['Brown beef with diced onion; drain.','Add sauce and simmer 15 min.','Cook spaghetti 1 min short; toss with a little sauce so it doesn\'t stick.','Portion and top with parmesan. Sauce freezes well.']},
+{id:'c14',name:'Beef Chili con Carne',cat:'Dinner',e:'🌶️',serv:6,time:45,fridge:5,cal:470,p:36,c:38,f:18,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Lean ground beef',900,'g','Meat & Fish'],['Kidney beans',2,'can','Pantry'],['Diced tomatoes',2,'can','Pantry'],['Onion',1,'pc','Produce'],['Chili powder',3,'tbsp','Spices & Sauces'],['Cheddar, shredded',90,'g','Dairy & Eggs']],
+ steps:['Brown beef with diced onion.','Add chili powder, tomatoes and drained beans.','Simmer 25 min, stirring now and then.','Portion and top with cheese. Freezes for 3 months.']},
+{id:'c15',name:'Meatloaf & Mashed Potatoes',cat:'Dinner',e:'🍖',serv:6,time:70,fridge:4,cal:560,p:36,c:42,f:26,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Lean ground beef',900,'g','Meat & Fish'],['Breadcrumbs',60,'g','Pantry'],['Eggs',1,'pc','Dairy & Eggs'],['Ketchup',120,'ml','Spices & Sauces'],['Onion',1,'pc','Produce'],['Potatoes',1200,'g','Produce'],['Milk',120,'ml','Dairy & Eggs'],['Butter',2,'tbsp','Dairy & Eggs']],
+ steps:['Mix beef, breadcrumbs, egg, grated onion and half the ketchup; shape a loaf.','Top with remaining ketchup; bake at 180°C / 350°F for 55 min.','Boil potatoes 15 min; mash with milk and butter.','Slice and portion with mash.']},
+{id:'c16',name:'Crispy Baked Pork Chops & Potatoes',cat:'Dinner',e:'🍖',serv:4,time:35,fridge:4,cal:520,p:40,c:45,f:18,cuisine:'Canadian',family:1,
+ ing:[['Boneless pork chops',800,'g','Meat & Fish'],['Breadcrumbs',100,'g','Pantry'],['Eggs',1,'pc','Dairy & Eggs'],['Potatoes',800,'g','Produce'],['Olive oil',2,'tbsp','Pantry'],['Paprika',1,'tsp','Spices & Sauces']],
+ steps:['Heat oven to 220°C / 425°F; roast cubed potatoes with oil 10 min.','Dip chops in beaten egg, then breadcrumbs mixed with paprika and salt.','Add chops to the tray; bake 18–20 min, flipping once.','Portion chops with potatoes.']},
+{id:'c17',name:'Roast Chicken Thighs & Potatoes',cat:'Dinner',e:'🍗',serv:4,time:50,fridge:4,cal:540,p:38,c:40,f:25,cuisine:'Canadian',family:1,
+ ing:[['Chicken thighs, bone-in',1200,'g','Meat & Fish'],['Potatoes',1000,'g','Produce'],['Onion',1,'pc','Produce'],['Olive oil',2,'tbsp','Pantry'],['Garlic powder',2,'tsp','Spices & Sauces']],
+ steps:['Heat oven to 220°C / 425°F.','Toss potato wedges and onion with oil, garlic powder and salt.','Lay seasoned thighs on top, skin up; roast 40 min.','Portion. Crisp skin back up in the oven or air fryer.']},
+{id:'c18',name:'Chicken Pot Pie',cat:'Dinner',e:'🥧',serv:6,time:55,fridge:4,cal:560,p:32,c:48,f:26,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Chicken breast',700,'g','Meat & Fish'],['Frozen peas & carrots',400,'g','Frozen'],['Pie crust',1,'pkg','Frozen'],['Chicken broth',500,'ml','Pantry'],['Milk',240,'ml','Dairy & Eggs'],['Butter',3,'tbsp','Dairy & Eggs'],['All-purpose flour',4,'tbsp','Pantry'],['Onion',1,'pc','Produce']],
+ steps:['Cook diced chicken and onion in butter; stir in flour.','Whisk in broth and milk; simmer until thick, then add the veg.','Pour into a pie dish and cover with the crust; cut slits.','Bake at 200°C / 400°F for 25 min. Cut into 6.']},
+{id:'c19',name:'Classic Beef Stew',cat:'Dinner',e:'🍲',serv:6,time:150,fridge:5,cal:480,p:38,c:35,f:18,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Stewing beef',1000,'g','Meat & Fish'],['Potatoes',800,'g','Produce'],['Carrots',4,'pc','Produce'],['Onion',1,'pc','Produce'],['Beef broth',900,'ml','Pantry'],['All-purpose flour',3,'tbsp','Pantry']],
+ steps:['Toss beef in flour and brown in batches.','Add onion and broth; simmer covered 1½ hours (or slow cook 8 h).','Add chunks of potato and carrot; cook 30 min more.','Portion. Even better the next day; freezes well.']},
+{id:'c20',name:'Beef Lasagna',cat:'Dinner',e:'🍝',serv:8,time:90,fridge:4,cal:560,p:38,c:46,f:24,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Lasagna noodles',375,'g','Pantry'],['Lean ground beef',900,'g','Meat & Fish'],['Marinara sauce',2,'jar','Pantry'],['Cottage cheese',500,'g','Dairy & Eggs'],['Mozzarella, shredded',340,'g','Dairy & Eggs'],['Eggs',1,'pc','Dairy & Eggs']],
+ steps:['Brown beef and stir in the sauce.','Mix cottage cheese with the egg.','Layer sauce, noodles (no-boil or cooked), cheese mix and mozzarella; repeat, finishing with sauce and mozzarella.','Bake covered at 190°C / 375°F for 45 min, uncovered 15. Rest 15 min, cut into 8.']},
+{id:'c21',name:'Ground Beef Taco Night',cat:'Dinner',e:'🌮',serv:4,time:25,fridge:4,cal:560,p:34,c:42,f:28,cuisine:'Canadian',family:1,
+ ing:[['Lean ground beef',700,'g','Meat & Fish'],['Taco shells',12,'pc','Pantry'],['Taco seasoning',2,'tbsp','Spices & Sauces'],['Cheddar, shredded',150,'g','Dairy & Eggs'],['Salsa',250,'ml','Spices & Sauces'],['Sour cream',250,'ml','Dairy & Eggs']],
+ steps:['Brown beef; add taco seasoning and water and simmer 5 min.','Portion the meat; pack cheese, salsa and sour cream in small cups.','Keep shells in their box so they stay crunchy.','Reheat meat, warm shells 3 min in the oven, then build.']},
+{id:'c22',name:'Pierogies & Kielbasa',cat:'Dinner',e:'🥟',serv:4,time:25,fridge:4,cal:620,p:24,c:62,f:30,cuisine:'Canadian',comfort:1,
+ ing:[['Frozen pierogies',1000,'g','Frozen'],['Kielbasa',500,'g','Meat & Fish'],['Onion',1,'pc','Produce'],['Butter',2,'tbsp','Dairy & Eggs'],['Sour cream',250,'ml','Dairy & Eggs']],
+ steps:['Boil pierogies 4–5 min; drain.','Fry sliced kielbasa and onion in butter until browned.','Add pierogies and fry until golden.','Portion with sour cream on the side.']},
+{id:'c23',name:'Tourtière (Meat Pie)',cat:'Dinner',e:'🥧',serv:8,time:90,fridge:4,cal:520,p:26,c:34,f:31,cuisine:'Canadian',comfort:1,
+ ing:[['Ground pork',900,'g','Meat & Fish'],['Potatoes',400,'g','Produce'],['Onion',1,'pc','Produce'],['Pie crust',1,'pkg','Frozen'],['Beef broth',250,'ml','Pantry'],['Cinnamon',1,'tsp','Spices & Sauces']],
+ steps:['Boil and mash the potatoes.','Brown pork with diced onion; add broth, cinnamon, salt and pepper and simmer 15 min.','Stir in the mashed potato; cool slightly.','Fill the bottom crust, cover with the top, cut slits and bake at 200°C / 400°F for 40 min. Cut into 8.']},
+{id:'c24',name:'Hot Chicken Sandwiches',cat:'Dinner',e:'🍗',serv:4,time:25,fridge:4,cal:560,p:42,c:52,f:18,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Chicken breast',700,'g','Meat & Fish'],['Sandwich bread',8,'pc','Bakery'],['Chicken gravy mix',2,'pkg','Spices & Sauces'],['Frozen peas',300,'g','Frozen']],
+ steps:['Bake or poach chicken and slice.','Make gravy per the packages.','Portion chicken in gravy; peas in a side compartment; bread separate.','Reheat chicken and gravy, pour over 2 slices of bread.']},
+{id:'c25',name:'Cheeseburger Macaroni',cat:'Dinner',e:'🍔',serv:6,time:30,fridge:4,cal:560,p:36,c:55,f:21,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Lean ground beef',700,'g','Meat & Fish'],['Pasta (dry)',450,'g','Pantry'],['Cheddar, shredded',200,'g','Dairy & Eggs'],['Milk',480,'ml','Dairy & Eggs'],['Beef broth',500,'ml','Pantry']],
+ steps:['Brown beef in a big pot; drain.','Add macaroni, broth and milk; simmer 10–12 min, stirring, until pasta is tender.','Stir in cheddar until melted.','Portion. Add a splash of milk when reheating.']},
+{id:'c26',name:'Sweet & Sour Meatballs with Rice',cat:'Dinner',e:'🍡',serv:6,time:30,fridge:4,cal:560,p:30,c:70,f:17,cuisine:'Canadian',family:1,
+ ing:[['Frozen meatballs',907,'g','Frozen'],['Sweet & sour sauce',1,'jar','Spices & Sauces'],['Rice (dry)',400,'g','Pantry']],
+ steps:['Cook rice.','Bake meatballs per the bag.','Toss in warmed sauce.','Portion over rice.']},
+{id:'c27',name:'Pepperoni & Cheese Snack Packs',cat:'Snack',e:'🧀',serv:4,time:5,fridge:7,cal:260,p:14,c:6,f:20,cuisine:'Canadian',family:1,
+ ing:[['Pepperoni sticks',8,'pc','Meat & Fish'],['Cheese strings',4,'pc','Dairy & Eggs'],['Whole grain crackers',100,'g','Pantry']],
+ steps:['Pack 2 pepperoni sticks, 1 cheese string and a few crackers per box.']},
+{id:'c28',name:'Rice Krispie Squares',cat:'Snack',e:'🟨',serv:12,time:15,fridge:7,cal:170,p:2,c:30,f:5,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Crispy rice cereal',300,'g','Pantry'],['Marshmallows',400,'g','Pantry'],['Butter',3,'tbsp','Dairy & Eggs']],
+ steps:['Melt butter and marshmallows over low heat.','Stir in cereal until coated.','Press into a greased 9×13 pan; cool and cut into 12.','Store in an airtight container (no fridge needed).']},
+{id:'c29',name:'Pizza Bagel Bites',cat:'Snack',e:'🍕',serv:6,time:20,fridge:4,cal:260,p:13,c:30,f:10,cuisine:'Canadian',family:1,
+ ing:[['Mini bagels',6,'pc','Bakery'],['Pizza sauce',200,'ml','Spices & Sauces'],['Mozzarella, shredded',150,'g','Dairy & Eggs'],['Pepperoni slices',100,'g','Meat & Fish']],
+ steps:['Split bagels; spread with pizza sauce.','Top with mozzarella and pepperoni.','Bake at 200°C / 400°F for 10 min.','Cool and box 2 halves per serving; reheat in toaster oven or air fryer.']}
+];
+BUILT.push(...CDN);
+Object.assign(PRICES,{'peameal bacon|g':[700,9],'sandwich bread|pc':[20,3.5],'frozen hash browns|g':[1000,4],'pork breakfast sausage|g':[375,5],'pancake mix|g':[905,4],
+'tomato soup|can':[1,1.3],'egg noodles|g':[375,3],'all-purpose flour|tbsp':[200,6,1],'hamburger buns|pc':[8,3.5],'ketchup|ml':[1000,4.5,1],'mustard|tbsp':[30,2.5,1],
+'dinner rolls|pc':[12,4],'boneless pork chops|g':[1000,11],'chicken thighs, bone-in|g':[1500,12],'garlic powder|tsp':[40,3,1],'pie crust|pkg':[1,4.5],'stewing beef|g':[1000,18],
+'lasagna noodles|g':[375,2.5],'mozzarella, shredded|g':[320,7],'taco shells|pc':[12,3.5],'sour cream|ml':[500,3.5],'frozen pierogies|g':[907,5],'kielbasa|g':[500,6.5],
+'ground pork|g':[450,5],'chicken gravy mix|pkg':[1,1.5],'frozen peas|g':[750,3],'frozen meatballs|g':[907,10],'sweet & sour sauce|jar':[1,4],'pepperoni sticks|pc':[10,7],
+'crispy rice cereal|g':[340,4.5],'marshmallows|g':[400,3.5],'mini bagels|pc':[6,3.5],'pizza sauce|ml':[370,3],'pepperoni slices|g':[125,4]});
+
+// ---- Favourites: Canadian-Chinese takeout, Italian, pies & desserts ----
+const FAV=[
+{id:'t1',name:'Chicken Soo Guy',cat:'Dinner',e:'🍗',serv:4,time:40,fridge:3,cal:640,p:42,c:62,f:24,cuisine:'Chinese takeout',family:1,comfort:1,
+ ing:[['Chicken breast',700,'g','Meat & Fish'],['All-purpose flour',6,'tbsp','Pantry'],['Eggs',2,'pc','Dairy & Eggs'],['Breadcrumbs',100,'g','Pantry'],['Vegetable oil',4,'tbsp','Pantry'],['Chicken broth',500,'ml','Pantry'],['Soy sauce',30,'ml','Spices & Sauces'],['Oyster sauce',2,'tbsp','Spices & Sauces'],['Cornstarch',2,'tbsp','Pantry'],['Rice (dry)',300,'g','Pantry'],['Sliced almonds',40,'g','Pantry'],['Romaine lettuce',1,'head','Produce']],
+ steps:['Butterfly chicken; dredge in flour, then egg, then breadcrumbs.','Brush with oil and bake at 220°C / 425°F for 20 min (or air fry 12 min), flipping once.','Simmer broth, soy and oyster sauce; thicken with cornstarch mixed in cold water for the gravy.','Cook rice. Slice chicken; keep gravy in its own container so the coating stays crisp.','Reheat chicken in the oven or air fryer, pour hot gravy over, top with almonds (and shredded lettuce if you like).']},
+{id:'t2',name:'Pork Egg Rolls',cat:'Lunch',e:'🥟',serv:4,time:40,fridge:4,cal:480,p:22,c:46,f:23,cuisine:'Chinese takeout',family:1,comfort:1,
+ ing:[['Ground pork',450,'g','Meat & Fish'],['Coleslaw mix',400,'g','Produce'],['Egg roll wrappers',12,'pc','Bakery'],['Soy sauce',30,'ml','Spices & Sauces'],['Garlic',2,'clove','Produce'],['Plum sauce',250,'ml','Spices & Sauces']],
+ steps:['Brown pork with garlic; add coleslaw mix and soy, cook 4 min and cool.','Roll 2–3 tbsp filling in each wrapper, sealing the edge with water.','Brush with oil and bake at 220°C / 425°F for 18 min (or air fry 10 min), turning once.','3 per serving with plum sauce. Freeze extras before baking.']},
+{id:'t3',name:'Chicken Fried Rice',cat:'Lunch',e:'🍚',serv:4,time:25,fridge:4,cal:480,p:32,c:60,f:11,cuisine:'Chinese takeout',family:1,comfort:1,
+ ing:[['Chicken breast',400,'g','Meat & Fish'],['Rice (dry)',300,'g','Pantry'],['Eggs',3,'pc','Dairy & Eggs'],['Frozen peas & carrots',300,'g','Frozen'],['Soy sauce',60,'ml','Spices & Sauces'],['Vegetable oil',2,'tbsp','Pantry']],
+ steps:['Cook rice ahead and chill it (day-old rice fries best).','Stir-fry diced chicken 6 min; push aside and scramble the eggs.','Add peas & carrots, then the rice and soy sauce; fry until hot and a little crispy.','Portion.']},
+{id:'t4',name:'Chicken Balls & Sweet and Sour Sauce',cat:'Dinner',e:'🟠',serv:4,time:40,fridge:3,cal:610,p:34,c:72,f:20,cuisine:'Chinese takeout',family:1,comfort:1,
+ ing:[['Chicken breast',600,'g','Meat & Fish'],['All-purpose flour',10,'tbsp','Pantry'],['Baking powder',2,'tsp','Pantry'],['Eggs',1,'pc','Dairy & Eggs'],['Vegetable oil',6,'tbsp','Pantry'],['Sweet & sour sauce',1,'jar','Spices & Sauces'],['Rice (dry)',300,'g','Pantry']],
+ steps:['Cut chicken into bite-size chunks.','Whisk flour, baking powder, egg and cold water into a thick batter; coat the chicken.','Shallow-fry in batches until golden (or air fry 12 min); drain.','Cook rice. Keep sauce separate; re-crisp balls in the oven or air fryer before saucing.']},
+{id:'t5',name:'Honey Garlic Spareribs',cat:'Dinner',e:'🍖',serv:4,time:100,fridge:4,cal:640,p:38,c:45,f:34,cuisine:'Chinese takeout',family:1,comfort:1,
+ ing:[['Pork side ribs',1500,'g','Meat & Fish'],['Honey',5,'tbsp','Pantry'],['Soy sauce',60,'ml','Spices & Sauces'],['Garlic',6,'clove','Produce'],['Brown sugar',2,'tbsp','Pantry'],['Rice (dry)',300,'g','Pantry']],
+ steps:['Cut ribs into pieces; simmer in water 30 min (or bake covered at 160°C / 325°F for 1 h) until tender.','Mix honey, soy, garlic and brown sugar.','Toss ribs in sauce and bake uncovered at 200°C / 400°F for 20 min, basting twice.','Serve over rice.']},
+{id:'t6',name:'Honey Garlic Chicken',cat:'Dinner',e:'🍯',serv:4,time:30,fridge:4,cal:560,p:42,c:62,f:14,cuisine:'Chinese takeout',family:1,
+ ing:[['Chicken thighs, boneless',800,'g','Meat & Fish'],['Honey',4,'tbsp','Pantry'],['Soy sauce',60,'ml','Spices & Sauces'],['Garlic',5,'clove','Produce'],['Cornstarch',1,'tbsp','Pantry'],['Rice (dry)',300,'g','Pantry']],
+ steps:['Cook rice.','Brown chicken pieces 8 min.','Add honey, soy and garlic; simmer 3 min and thicken with cornstarch slurry.','Portion over rice.']},
+{id:'t7',name:'Honey Garlic Meatballs',cat:'Dinner',e:'🍡',serv:6,time:30,fridge:4,cal:560,p:30,c:70,f:17,cuisine:'Chinese takeout',family:1,comfort:1,
+ ing:[['Frozen meatballs',907,'g','Frozen'],['Honey',5,'tbsp','Pantry'],['Soy sauce',60,'ml','Spices & Sauces'],['Garlic',4,'clove','Produce'],['Brown sugar',2,'tbsp','Pantry'],['Cornstarch',1,'tbsp','Pantry'],['Rice (dry)',400,'g','Pantry']],
+ steps:['Bake meatballs per the bag.','Simmer honey, soy, garlic, sugar and 125 ml water; thicken with cornstarch slurry.','Toss meatballs in sauce.','Portion over rice.']},
+{id:'t8',name:'Chicken Chow Mein',cat:'Dinner',e:'🍜',serv:4,time:25,fridge:4,cal:520,p:36,c:58,f:15,cuisine:'Chinese takeout',family:1,
+ ing:[['Chicken breast',500,'g','Meat & Fish'],['Steamed chow mein noodles',400,'g','Pantry'],['Soy sauce',60,'ml','Spices & Sauces'],['Oyster sauce',2,'tbsp','Spices & Sauces'],['Frozen stir-fry vegetables',400,'g','Frozen'],['Sesame oil',1,'tbsp','Spices & Sauces']],
+ steps:['Loosen noodles under hot water.','Stir-fry sliced chicken 6 min; add veg for 3 min.','Add noodles, soy and oyster sauce; toss until coated and hot.','Finish with sesame oil and portion.']},
+{id:'t9',name:'Crispy Ginger Beef',cat:'Dinner',e:'🥩',serv:4,time:35,fridge:4,cal:640,p:34,c:76,f:22,cuisine:'Chinese takeout',comfort:1,
+ ing:[['Beef stir-fry strips',600,'g','Meat & Fish'],['Cornstarch',4,'tbsp','Pantry'],['Eggs',1,'pc','Dairy & Eggs'],['Vegetable oil',4,'tbsp','Pantry'],['Sweet chili sauce',120,'ml','Spices & Sauces'],['Soy sauce',30,'ml','Spices & Sauces'],['Ground ginger',2,'tsp','Spices & Sauces'],['Rice (dry)',300,'g','Pantry']],
+ steps:['Toss thin beef strips with egg, then cornstarch.','Fry in batches until very crisp; drain.','Simmer sweet chili sauce, soy and ginger; toss beef in it.','Portion over rice. Re-crisp in the air fryer when reheating.']},
+{id:'i1',name:'Italian Meatballs & Spaghetti',cat:'Dinner',e:'🍝',serv:6,time:45,fridge:4,cal:620,p:36,c:66,f:23,cuisine:'Italian',family:1,comfort:1,
+ ing:[['Lean ground beef',450,'g','Meat & Fish'],['Ground pork',450,'g','Meat & Fish'],['Breadcrumbs',60,'g','Pantry'],['Eggs',1,'pc','Dairy & Eggs'],['Parmesan',60,'g','Dairy & Eggs'],['Garlic',3,'clove','Produce'],['Italian seasoning',2,'tsp','Spices & Sauces'],['Marinara sauce',1,'jar','Pantry'],['Pasta (dry)',500,'g','Pantry']],
+ steps:['Mix beef, pork, breadcrumbs, egg, half the parmesan, garlic and seasoning; roll 24 meatballs.','Bake at 200°C / 400°F for 18 min.','Simmer meatballs in marinara 15 min while the spaghetti cooks.','Portion and top with remaining parmesan. Meatballs freeze well.']},
+{id:'i2',name:'Meatball Subs',cat:'Lunch',e:'🥖',serv:6,time:30,fridge:4,cal:580,p:32,c:55,f:25,cuisine:'Italian',family:1,comfort:1,
+ ing:[['Frozen meatballs',700,'g','Frozen'],['Sub buns',6,'pc','Bakery'],['Marinara sauce',1,'jar','Pantry'],['Mozzarella, shredded',150,'g','Dairy & Eggs']],
+ steps:['Bake meatballs, then simmer in marinara 10 min.','Portion meatballs and sauce; keep buns and cheese separate.','To eat: reheat meatballs, fill a bun, top with cheese and toast 3–4 min.']},
+{id:'i3',name:'Chicken Parmesan & Spaghetti',cat:'Dinner',e:'🧀',serv:4,time:40,fridge:4,cal:640,p:48,c:62,f:20,cuisine:'Italian',family:1,comfort:1,
+ ing:[['Chicken breast',700,'g','Meat & Fish'],['Breadcrumbs',100,'g','Pantry'],['Eggs',1,'pc','Dairy & Eggs'],['Parmesan',40,'g','Dairy & Eggs'],['Marinara sauce',1,'jar','Pantry'],['Mozzarella, shredded',120,'g','Dairy & Eggs'],['Pasta (dry)',300,'g','Pantry']],
+ steps:['Pound chicken thin; dip in egg, then breadcrumbs mixed with parmesan.','Bake at 220°C / 425°F for 15 min; top with sauce and mozzarella and bake 5 more.','Toss spaghetti with remaining sauce.','Portion chicken on pasta.']},
+{id:'i4',name:'Baked Penne with Italian Sausage',cat:'Dinner',e:'🍝',serv:6,time:45,fridge:4,cal:600,p:30,c:62,f:25,cuisine:'Italian',family:1,comfort:1,
+ ing:[['Pasta (dry)',450,'g','Pantry'],['Italian sausage',500,'g','Meat & Fish'],['Marinara sauce',1,'jar','Pantry'],['Mozzarella, shredded',200,'g','Dairy & Eggs'],['Cottage cheese',250,'g','Dairy & Eggs']],
+ steps:['Cook penne 2 min short; brown sliced sausage.','Mix pasta, sausage, sauce and cottage cheese in a 9×13 dish.','Top with mozzarella; bake at 190°C / 375°F for 20 min.','Cut into 6.']},
+{id:'p1',name:'Pâté Chinois (Quebec Shepherd\'s Pie)',cat:'Dinner',e:'🥧',serv:6,time:60,fridge:4,cal:540,p:32,c:52,f:22,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Lean ground beef',900,'g','Meat & Fish'],['Onion',1,'pc','Produce'],['Creamed corn',2,'can','Pantry'],['Potatoes',1200,'g','Produce'],['Milk',120,'ml','Dairy & Eggs'],['Butter',3,'tbsp','Dairy & Eggs']],
+ steps:['Boil potatoes 15 min; mash with milk and butter.','Brown beef with onion; season and spread in a 9×13 dish.','Layer creamed corn over the beef, then the mash.','Bake at 190°C / 375°F for 25 min. Cut into 6.']},
+{id:'p2',name:'Beef & Gravy Meat Pie',cat:'Dinner',e:'🥧',serv:6,time:70,fridge:4,cal:560,p:30,c:38,f:32,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Lean ground beef',900,'g','Meat & Fish'],['Pie crust',1,'pkg','Frozen'],['Onion',1,'pc','Produce'],['Beef gravy mix',2,'pkg','Spices & Sauces'],['Potatoes',400,'g','Produce'],['Frozen peas & carrots',200,'g','Frozen']],
+ steps:['Brown beef and onion; add diced potato, the gravy mix and 500 ml water; simmer 15 min.','Stir in peas & carrots; cool slightly.','Fill the bottom crust, add the top, crimp and cut slits.','Bake at 200°C / 400°F for 35 min. Cut into 6.']},
+// Desserts
+{id:'q1',name:'Classic Apple Pie',cat:'Dessert',e:'🥧',serv:8,time:75,fridge:4,cal:380,p:3,c:55,f:17,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Pie crust',1,'pkg','Frozen'],['Apples',6,'pc','Produce'],['Sugar',10,'tbsp','Pantry'],['Cinnamon',2,'tsp','Spices & Sauces'],['All-purpose flour',2,'tbsp','Pantry'],['Butter',2,'tbsp','Dairy & Eggs']],
+ steps:['Peel and slice apples; toss with sugar, cinnamon and flour.','Pile into the bottom crust, dot with butter and cover with the top crust; cut slits.','Bake at 220°C / 425°F for 15 min, then 180°C / 350°F for 40 min.','Cool fully before cutting into 8. Keeps 2 days on the counter or 4 in the fridge.']},
+{id:'q2',name:'Butter Tarts',cat:'Dessert',e:'🧈',serv:6,time:35,fridge:5,cal:360,p:3,c:50,f:17,cuisine:'Canadian',family:1,comfort:1,
+ ing:[['Tart shells',12,'pc','Frozen'],['Brown sugar',12,'tbsp','Pantry'],['Butter',4,'tbsp','Dairy & Eggs'],['Eggs',1,'pc','Dairy & Eggs'],['Maple syrup',4,'tbsp','Pantry']],
+ steps:['Heat oven to 190°C / 375°F.','Whisk melted butter, brown sugar, syrup and egg (add raisins or pecans if you like).','Fill shells two-thirds full.','Bake 15–18 min until bubbly. 2 tarts per serving.']},
+{id:'q3',name:'Nanaimo Bars',cat:'Dessert',e:'🍫',serv:8,time:40,fridge:7,cal:420,p:4,c:50,f:24,cuisine:'Canadian',family:1,
+ ing:[['Graham crumbs',250,'g','Pantry'],['Butter',10,'tbsp','Dairy & Eggs'],['Cocoa powder',5,'tbsp','Pantry'],['Shredded coconut',80,'g','Pantry'],['Custard powder',2,'tbsp','Pantry'],['Icing sugar',400,'g','Pantry'],['Chocolate chips',200,'g','Pantry']],
+ steps:['Base: mix crumbs, coconut, cocoa and 6 tbsp melted butter; press into an 8×8 pan and chill.','Middle: beat 3 tbsp butter, custard powder, icing sugar and a splash of milk; spread on top and chill.','Top: melt chocolate with 1 tbsp butter; spread and chill 1 h.','Cut into 16 (2 per serving).']},
+{id:'q4',name:'Chocolate Chip Cookies',cat:'Dessert',e:'🍪',serv:12,time:30,fridge:7,cal:300,p:3,c:38,f:15,cuisine:'Classic',family:1,
+ ing:[['All-purpose flour',36,'tbsp','Pantry'],['Butter',16,'tbsp','Dairy & Eggs'],['Brown sugar',12,'tbsp','Pantry'],['Sugar',8,'tbsp','Pantry'],['Eggs',2,'pc','Dairy & Eggs'],['Chocolate chips',300,'g','Pantry'],['Baking soda',1,'tsp','Pantry']],
+ steps:['Cream soft butter and both sugars; beat in eggs.','Mix in flour and baking soda, then chocolate chips.','Scoop 24 balls onto trays; bake at 180°C / 350°F for 10–11 min.','2 cookies per serving. Freeze dough balls to bake fresh later.']},
+{id:'q5',name:'Rice Pudding',cat:'Dessert',e:'🍮',serv:6,time:40,fridge:4,cal:260,p:8,c:44,f:6,cuisine:'Classic',family:1,comfort:1,
+ ing:[['Rice (dry)',150,'g','Pantry'],['Milk',1000,'ml','Dairy & Eggs'],['Sugar',6,'tbsp','Pantry'],['Eggs',1,'pc','Dairy & Eggs'],['Cinnamon',1,'tsp','Spices & Sauces']],
+ steps:['Simmer rice in milk with sugar, stirring often, for 30 min.','Whisk egg with a ladle of the hot milk, then stir it back in for 2 min.','Portion into cups and dust with cinnamon.','Eat warm or cold.']},
+{id:'q6',name:'Sugar Pie (Tarte au Sucre)',cat:'Dessert',e:'🥧',serv:8,time:55,fridge:5,cal:420,p:3,c:58,f:20,cuisine:'Canadian',comfort:1,
+ ing:[['Pie crust',1,'pkg','Frozen'],['Brown sugar',16,'tbsp','Pantry'],['Whipping cream',250,'ml','Dairy & Eggs'],['Butter',2,'tbsp','Dairy & Eggs'],['All-purpose flour',2,'tbsp','Pantry']],
+ steps:['Heat oven to 180°C / 350°F.','Whisk brown sugar, cream, melted butter and flour until smooth.','Pour into the bottom crust (save the top for another pie).','Bake 40 min until set but still a little wobbly. Cool and cut into 8.']},
+{id:'q7',name:'Fudgy Brownies',cat:'Dessert',e:'🟫',serv:8,time:35,fridge:5,cal:280,p:3,c:38,f:13,cuisine:'Classic',family:1,
+ ing:[['Brownie mix',1,'pkg','Pantry'],['Eggs',2,'pc','Dairy & Eggs'],['Vegetable oil',6,'tbsp','Pantry']],
+ steps:['Mix per the box.','Bake in an 8×8 pan; cool completely.','Cut into 16 (2 per serving).']}
+];
+BUILT.push(...FAV);
+Object.assign(PRICES,{'oyster sauce|tbsp':[30,4,1],'sliced almonds|g':[100,4],'vegetable oil|tbsp':[60,6,1],'coleslaw mix|g':[397,3.5],'egg roll wrappers|pc':[20,4],
+'plum sauce|ml':[400,4],'pork side ribs|g':[1500,15],'steamed chow mein noodles|g':[400,3],'sweet chili sauce|ml':[350,4],'ground ginger|tsp':[40,3,1],'italian seasoning|tsp':[40,3,1],
+'sub buns|pc':[6,4],'beef gravy mix|pkg':[1,1.5],'creamed corn|can':[1,1.6],'sugar|tbsp':[150,4,1],'tart shells|pc':[12,4.5],'graham crumbs|g':[400,4.5],'cocoa powder|tbsp':[30,5,1],
+'custard powder|tbsp':[20,4,1],'icing sugar|g':[1000,4],'shredded coconut|g':[200,3.5],'baking soda|tsp':[100,2,1],'whipping cream|ml':[473,4.5],'brownie mix|pkg':[1,3.5]});
+
+function defaultState(){return{v:2,goals:{cal:2200,p:160,c:220,f:70},people:1,prepDays:[6],plan:{},custom:[],checked:[],extras:[],
+  budget:180,store:'avg',packs:true,prices:{},pantry:null,slots:['B','L','D','S'],onboarded:false,taste:{diet:'any',pref:{},never:''},rpref:{}}}
+let S=defaultState();
+let tab='plan', recFilter='All', recQuery='';
+
+/* ---------- Helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const allRecipes=()=>BUILT.concat(S.custom||[]);
+const rec=id=>allRecipes().find(r=>r.id===id);
+const key=(d,s)=>d+'-'+s;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800)}
+const WHOLE=['pc','can','jar','clove','head','bunch','pkg'];
+function fmtQty(q,u){
+  if(WHOLE.includes(u)) return String(Math.ceil(q-0.01));
+  if(u==='g'||u==='ml') return String(Math.max(1,Math.round(q/5)*5||Math.round(q)));
+  const r=Math.max(0.25,Math.round(q*4)/4); const w=Math.floor(r), fr=r-w;
+  const m={0:'',0.25:'¼',0.5:'½',0.75:'¾'}[fr]??'';
+  return (w?w:'')+(m)||'0';
+}
+function fmtIng(q,u,n){
+  if((u==='g'||u==='ml')&&q>=1000){const v=Math.round(q/50)*50/1000;return `${v} ${u==='g'?'kg':'l'}`}
+  const qs=fmtQty(q,u);
+  return u==='pc'?qs:`${qs} ${u}${(['can','jar','clove','head','bunch','pkg'].includes(u)&&Number(qs)>1)?'s':''}`;
+}
+
+/* ---------- Tastes ---------- */
+const CUISINE={b1:'Classic',b2:'Classic',b3:'Mexican',b4:'Classic',l1:'Mexican',l2:'Classic',l3:'Mediterranean',l4:'Asian',l5:'Mexican',
+  d1:'Asian',d2:'Mexican',d3:'Asian',d4:'Classic',d5:'Italian',d6:'Indian',s1:'Classic',s2:'Mediterranean',s3:'Classic',s4:'Classic'};
+const SPICY=new Set(['d2','d6']);
+const CUISINES=['Canadian','Chinese takeout','Classic','Mexican','Asian','Italian','Mediterranean','Indian'];
+const PROTEINS=[['chicken','🍗 Chicken'],['beef','🥩 Beef'],['turkey','🦃 Turkey'],['pork','🥓 Pork & ham'],['fish','🐟 Fish & seafood'],['eggs','🥚 Eggs'],['plant','🌱 Plant-based']];
+const MEAT=['chicken','beef','turkey','pork'];
+function proteinsOf(r){
+  const p=new Set();
+  r.ing.forEach(([n])=>{n=n.toLowerCase();if(/broth/.test(n))return;
+    if(/chicken/.test(n))p.add('chicken');else if(/turkey/.test(n))p.add('turkey');else if(/beef|steak|meatball/.test(n))p.add('beef');
+    else if(/pork|\bham\b|bacon|sausage|kielbasa|pepperoni/.test(n))p.add('pork');else if(/salmon|tuna|fish|shrimp|cod\b|tilapia/.test(n))p.add('fish');
+    else if(/\beggs?\b/.test(n)&&!/noodle|roll/.test(n))p.add('eggs')});
+  const s=r.ing.map(i=>i[0].toLowerCase()).join(' ');
+  if(![...p].some(x=>MEAT.includes(x)||x==='fish')&&/bean|lentil|chickpea|tofu|edamame|peanut|nuts|yogurt|hummus|cottage|quinoa/.test(s))p.add('plant');
+  return [...p];
+}
+function tagsOf(r){
+  const t=proteinsOf(r).map(p=>'p:'+p);
+  t.push('c:'+(r.cuisine||CUISINE[r.id]||'Classic'));
+  if(r.spicy||SPICY.has(r.id))t.push('spicy');
+  return t;
+}
+/* ---------- Fruit & veg dislikes ---------- */
+const FRUIT=/berr|banana|apple|grape|orange|lemon|lime/;
+function produceList(){
+  const m=new Map();
+  allRecipes().forEach(r=>r.ing.forEach(([n,,,a])=>{const l=n.toLowerCase();
+    if(a==='Produce'&&!/tofu|garlic/.test(l)||/mixed berries|peas & carrots|stir-fry vegetables|cauliflower rice|corn kernels/.test(l)) m.set(l,n)}));
+  return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1]));
+}
+const STEMS={'coleslaw mix':'slaw','steamed chow mein noodles':'chow mein','frozen cauliflower rice':'cauliflower','corn kernels':'corn','green beans':'green bean','frozen peas & carrots':'pea','frozen stir-fry vegetables':'veg','sweet potatoes':'sweet potato','green onions':'green onion','mixed berries':'berr'};
+function stem(n){if(STEMS[n.toLowerCase()])return STEMS[n.toLowerCase()];const w=n.toLowerCase().replace(/^frozen |^baby |^mixed |^cherry |^romaine |^green |^red |^bell /,'').split(/[ &,]+/).pop();
+  return w.replace(/ies$/,'').replace(/oes$/,'o').replace(/s$/,'')}
+const noProd=()=>new Set(T().noProduce||[]);
+// Disliked produce that is just a side gets left out; if the recipe is built around it, the recipe is skipped
+const vegDish=r=>/veg|salad|slaw/i.test(r.name);
+function isMain(r,i){return vegDish(r)||r.name.toLowerCase().includes(stem(i[0]))}
+function skipped(r){const np=noProd();if(!np.size)return[];return r.ing.filter(i=>np.has(i[0].toLowerCase())&&!isMain(r,i))}
+function mainProduce(r){const np=noProd();if(!np.size)return null;return r.ing.find(i=>np.has(i[0].toLowerCase())&&isMain(r,i))}
+function ingUsed(r){const sk=new Set(skipped(r));return r.ing.filter(i=>!sk.has(i))}
+const T=()=>S.taste||(S.taste={diet:'any',pref:{},never:''});
+function whyNot(r){
+  const t=T(), pr=proteinsOf(r);
+  if((S.rpref||{})[r.id]===-1) return 'You marked it never';
+  if(t.diet==='vegetarian'&&pr.some(p=>MEAT.includes(p)||p==='fish')) return 'Not vegetarian';
+  if(t.diet==='pescatarian'&&pr.some(p=>MEAT.includes(p))) return 'Has meat';
+  const bad=tagsOf(r).find(g=>t.pref[g]===-1); if(bad) return 'You dislike '+tagLabel(bad);
+  const nev=(t.never||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);
+  const hit=nev.find(w=>r.ing.some(i=>i[0].toLowerCase().includes(w.replace(/s$/,''))));
+  if(hit) return 'Contains '+hit;
+  const mp=mainProduce(r); if(mp) return 'Built around '+mp[0].toLowerCase();
+  return '';
+}
+const allowed=r=>!whyNot(r);
+const liked=r=>(S.rpref||{})[r.id]===1||tagsOf(r).some(g=>T().pref[g]===1);
+// "What are you into?" — soft preferences that steer which recipes get planned
+const SWEET=/honey|sugar|chocolate|teriyaki|granola|maple|syrup|jam|marshmallow|sweet & sour|ketchup/;
+const FIBRE=/bean|lentil|oat|chia|chickpea|broccoli|sweet potato|berr|whole wheat|brown rice|pea/;
+const ANTI=/cod\b|quinoa|chickpea|edamame|tofu|salmon|sardine|olive oil|berr|spinach|kale|broccoli|lentil|turmeric|curry|chia|walnut|almond|sweet potato|green beans/;
+const PROCESSED=/\bham\b|bacon|sausage|deli|kielbasa|pepperoni|meatballs/;
+const FAMILY=new Set(['b2','b3','b4','l1','l2','l4','d1','d5','s1','s4']);
+const COMFORT=new Set(['b3','d2','d3','d5','d6','l4']);
+const GOALS=[
+ ['protein','💪','High protein',r=>r.p>=30||r.p*4/Math.max(r.cal,1)>=.25],
+ ['healthy','🥗','Healthy',r=>r.cal<=550&&r.f*9/Math.max(r.cal,1)<=.35&&r.ing.filter(i=>i[3]==='Produce').length>=2&&!PROCESSED.test(ingText(r))],
+ ['lowcarb','🥦','Low carb',r=>r.c*4/Math.max(r.cal,1)<=.3],
+ ['lowfat','🍋','Low fat',r=>r.f*9/Math.max(r.cal,1)<=.25],
+ ['lowcal','🪶','Low calorie',r=>r.cat==='Snack'||r.cat==='Dessert'?r.cal<=200:r.cal<=450],
+ ['lowsugar','🫐','Lower sugar',r=>!SWEET.test(ingText(r))],
+ ['fibre','🫘','High fibre',r=>FIBRE.test(ingText(r))],
+ ['antiinf','🫒','Anti-inflammatory',r=>ANTI.test(ingText(r))&&!PROCESSED.test(ingText(r))],
+ ['plant','🌿','Plant-forward',r=>!proteinsOf(r).some(p=>MEAT.includes(p)||p==='fish')],
+ ['meat','🥩','Meat lover',r=>proteinsOf(r).some(p=>MEAT.includes(p))],
+ ['quick','⚡','Quick prep',r=>r.time<=20],
+ ['family','🍝','Family favourites',r=>r.family||FAMILY.has(r.id)],
+ ['comfort','🍲','Comfort food',r=>r.comfort||COMFORT.has(r.id)],
+ ['batch','🍱','Batch cook',r=>r.fridge>=5||r.serv>=6||r.steps.some(s=>/freez/i.test(s))],
+ ['fewveg','🍖','Light on veggies',r=>ingUsed(r).filter(i=>i[3]==='Produce'&&!/onion|garlic|lemon|lime/i.test(i[0])).length<=1],
+ ['macros','🎯','Macro targets',()=>false]];
+function ingText(r){return r._it||(r._it=r.ing.map(i=>i[0].toLowerCase()).join(' '))}
+const goalsOn=()=>(T().goals||[]);
+const goalHits=r=>GOALS.filter(g=>goalsOn().includes(g[0])&&g[3](r));
+const SHARE={B:.25,L:.3,D:.35,S:.1,X:.1};
+function planScore(){
+  let s=0;
+  Object.values(S.plan).forEach(id=>{const r=rec(id);if(r)s+=goalHits(r).length*2+(liked(r)?1:0)+((S.rpref||{})[r.id]===1?2:0)});
+  if(goalsOn().includes('macros')){
+    const share=(S.slots||[]).reduce((a,x)=>a+(SHARE[x]||0),0)||1;let err=0;
+    for(let d=0;d<7;d++){const t=dayTotals(d);['cal','p','c','f'].forEach(k=>{const g=S.goals[k]*share;err+=Math.abs(t[k]-g)/g})}
+    s-=err/28*80;
+  }
+  return s;
+}
+
+const weight=r=>1+goalHits(r).length*2+(tagsOf(r).filter(g=>T().pref[g]===1).length?3:0)+((S.rpref||{})[r.id]===1?6:0);
+function wshuffle(list){return list.map(r=>({r,k:-Math.log(Math.random())/weight(r)})).sort((a,b)=>a.k-b.k).map(x=>x.r)}
+function tagLabel(g){if(g==='spicy')return 'spicy food';const [k,v]=g.split(':');return k==='p'?(PROTEINS.find(p=>p[0]===v)||[,''])[1].replace(/^\S+ /,'').toLowerCase():v+' food'}
+function tasteSheet(after){
+  const t=JSON.parse(JSON.stringify(T()));
+  const tri=(g,label)=>{const v=t.pref[g]||0;return `<button class="chip tri ${v===1?'like':v===-1?'dis':''}" data-g="${g}">${v===1?'👍 ':v===-1?'👎 ':''}${label}</button>`};
+  const draw=()=>{
+    const okCount=c=>allRecipes().filter(r=>r.cat===c&&!whyNotWith(r,t)).length;
+    const counts=CATS.map(c=>[c,okCount(c)]);
+    openSheet(`<h2 style="font-size:24px">What are you into?</h2><p class="small muted" style="margin:4px 0 10px">Pick as many as you like. These shape which meals get planned.</p>
+    <div class="chips goals">${GOALS.map(([k,e,l])=>`<button class="chip goal ${(t.goals||[]).includes(k)?'on':''}" data-goal="${k}"><span>${e}</span> ${l}</button>`).join('')}</div>
+    ${(t.goals||[]).includes('macros')?`<div class="small muted" style="margin:8px 4px 0">🎯 Plans aim for your daily targets: ${S.goals.cal} cal · ${S.goals.p}g P · ${S.goals.c}g C · ${S.goals.f}g F (change them in Settings).</div>`:''}
+    <div class="sec-title" style="margin-top:22px">Likes & dislikes</div><p class="small muted" style="margin:0 4px">Tap once to like 👍, twice to dislike 👎, again to clear. Dislikes are never planned; likes show up more often.</p>
+    <div class="sec-title">Diet</div><div class="chips">${[['any','Anything'],['pescatarian','Pescatarian'],['vegetarian','Vegetarian']].map(([k,l])=>`<button class="chip ${t.diet===k?'on':''}" data-diet="${k}">${l}</button>`).join('')}</div>
+    <div class="sec-title">Proteins</div><div class="chips">${PROTEINS.map(([k,l])=>tri('p:'+k,l)).join('')}</div>
+    <div class="sec-title">Cuisines</div><div class="chips">${CUISINES.map(c=>tri('c:'+c,c)).join('')}${tri('spicy','🌶️ Spicy')}</div>
+    <div class="sec-title">Fruits & veggies you don't like</div>
+    <div class="small muted" style="margin:0 4px 8px">Tap to cross off. If it's just a side, it's left out of the recipe and off your grocery list. If the dish is built around it, the dish is skipped.</div>
+    <div class="chips">${produceList().map(([k,n])=>{const off=(t.noProduce||[]).includes(k);return `<button class="chip ${off?'tri dis':''}" data-pv="${esc(k)}">${off?'✕ ':''}${esc(n)}</button>`}).join('')}</div>
+    <div class="row" style="margin-top:8px"><button class="btn sm" id="pvall">Cross off all fruit & veg</button><button class="btn sm" id="pvnone">Clear</button></div>
+    <div class="sec-title">Never include</div><input id="tnev" placeholder="e.g. mushrooms, cilantro, feta" value="${esc(t.never||'')}">
+    <div class="small muted" style="margin:6px 4px 0">Separate with commas. Any recipe using these is skipped. You can also mark single recipes 👍 or 👎 on the Recipes tab.</div>
+    <div class="card small" style="margin-top:14px">${counts.map(([c,n])=>`<span class="tag ${n?'':'w'}">${c}: ${n} recipe${n===1?'':'s'}</span>`).join(' ')}${counts.some(([,n])=>!n)?'<div style="margin-top:6px" class="warnic">Nothing left in some meals. Loosen a dislike or add your own recipe.</div>':''}</div>
+    <div class="row"><button class="btn grow" data-close>Cancel</button><button class="btn pri grow" id="tsv">${after?'See my plan ›':'Save tastes'}</button></div>`);
+    document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{const g=b.dataset.g,v=t.pref[g]||0;t.never=$('#tnev').value;const n=v===0?1:v===1?-1:0;if(n)t.pref[g]=n;else delete t.pref[g];draw()});
+    document.querySelectorAll('[data-pv]').forEach(b=>b.onclick=()=>{t.never=$('#tnev').value;const k=b.dataset.pv,s=new Set(t.noProduce||[]);s.has(k)?s.delete(k):s.add(k);t.noProduce=[...s];draw()});
+    $('#pvall').onclick=()=>{t.never=$('#tnev').value;t.noProduce=produceList().map(x=>x[0]).filter(k=>!/onion|potato/.test(k));draw()};
+    $('#pvnone').onclick=()=>{t.never=$('#tnev').value;t.noProduce=[];draw()};
+    document.querySelectorAll('[data-goal]').forEach(b=>b.onclick=()=>{t.never=$('#tnev').value;const k=b.dataset.goal,g=new Set(t.goals||[]);g.has(k)?g.delete(k):g.add(k);t.goals=[...g];draw()});
+    document.querySelectorAll('[data-diet]').forEach(b=>b.onclick=()=>{t.never=$('#tnev').value;t.diet=b.dataset.diet;draw()});
+    $('#tsv').onclick=()=>{t.never=$('#tnev').value;S.taste=t;save();closeSheet();
+      if(after)after(); else{const bad=Object.values(S.plan).filter(id=>rec(id)&&!allowed(rec(id))).length;render();toast(bad?`Saved · ${bad} planned meal${bad>1?'s':''} no longer fit your tastes. Re-plan to update`:'Tastes saved')}};
+  };
+  draw();
+}
+function whyNotWith(r,t){const keep=S.taste;S.taste=t;const w=whyNot(r);S.taste=keep;return w}
+
+function tasteSummary(){const t=T(),l=Object.keys(t.pref).filter(g=>t.pref[g]===1).map(tagLabel),d=Object.keys(t.pref).filter(g=>t.pref[g]===-1).map(tagLabel);
+  const parts=[];const gl=GOALS.filter(g=>(t.goals||[]).includes(g[0])).map(g=>g[2]);if(gl.length)parts.push(gl.join(', '));if(t.diet!=='any')parts.push(t.diet[0].toUpperCase()+t.diet.slice(1));if(l.length)parts.push('Likes '+l.join(', '));if(d.length)parts.push('No '+d.join(', '));if((t.never||'').trim())parts.push('Never: '+t.never.trim());if((t.noProduce||[]).length)parts.push(`Skips ${t.noProduce.length} fruits & veg`);
+  return esc(parts.join(' · ')||'Tell me what you like and dislike')}
+/* ---------- Plan logic ---------- */
+function prepDayFor(d){
+  const pd=(S.prepDays&&S.prepDays.length)?S.prepDays:[6];
+  let best=pd[0],gap=99;
+  pd.forEach(p=>{const g=(d-p+7)%7;if(g<gap){gap=g;best=p}});
+  return {p:best,gap};
+}
+function slotWarn(d,s){
+  const r=rec(S.plan[key(d,s)]); if(!r||isFrz(key(d,s))) return null;
+  const {gap,p}=prepDayFor(d);
+  return gap>r.fridge?{gap,p,fridge:r.fridge}:null;
+}
+function dayTotals(d){
+  const t={cal:0,p:0,c:0,f:0};
+  SLOTS.forEach(([s])=>{const r=rec(S.plan[key(d,s)]);if(r){t.cal+=r.cal;t.p+=r.p;t.c+=r.c;t.f+=r.f}});
+  return t;
+}
+function sessions(){
+  // {prepDay: {recipeId: {r, need, days:Set}}}
+  const out={};
+  for(let d=0;d<7;d++) SLOTS.forEach(([s])=>{
+    const id=S.plan[key(d,s)]; const r=rec(id); if(!r||isFrz(key(d,s))) return;
+    const {p}=prepDayFor(d);
+    out[p]=out[p]||{};
+    const e=out[p][id]=out[p][id]||{r,need:0,days:new Set(),warn:false};
+    e.need+=S.people||1; e.days.add(d); if(slotWarn(d,s)) e.warn=true;
+  });
+  Object.values(out).forEach(sess=>Object.values(sess).forEach(e=>e.make=S.fullBatch?Math.ceil(e.need/e.r.serv-1e-6)*e.r.serv:e.need));
+  return out;
+}
+function groceries(){
+  const map={};
+  const ss=sessions();
+  Object.values(ss).forEach(sess=>Object.values(sess).forEach(({r,make})=>{
+    const scale=make/r.serv;
+    ingUsed(r).forEach(([n,q,u,a])=>{
+      const k=(n.trim().toLowerCase())+'|'+u;
+      if(!map[k]) map[k]={k,n:n.trim(),q:0,u,a:a||'Other',from:new Set()};
+      map[k].q+=q*scale; map[k].from.add(r.name);
+    });
+  }));
+  (S.extras||[]).forEach(x=>{const k='x|'+x.id;map[k]={k,n:x.n,q:null,u:'',a:'Other',from:new Set(['Added by you']),extra:x.id}});
+  return Object.values(map).map(i=>{
+    i.pantry=!!(S.pantry&&S.pantry[i.k]);
+    const pr=priceFor(i.k);
+    if(i.extra){const x=S.extras.find(e=>e.id===i.extra);i.cost=x&&x.price?+x.price:0;i.priced=!!(x&&x.price)}
+    else if(pr){i.priced=true;i.by={};myStores().forEach(st=>{const c=costAt(i.k,i.q,st);if(c)i.by[st]=c});
+      const pick=splitOn()?Object.values(i.by).sort((a,b)=>a.cost-b.cost)[0]:(i.by[S.store]||costAt(i.k,i.q,S.store));
+      i.store=pick.st;i.npacks=pick.npacks;i.cost=pick.cost;i.pr=pick.pr;i.own=!!ownPrice(i.k,pick.st)}
+    else{i.priced=false;i.cost=0}
+    if(i.pantry)i.cost=0;
+    return i;
+  });
+}
+const ikey=(n,u)=>n.trim().toLowerCase()+'|'+u;
+// Rough price level of common Ontario chains vs. an average store (estimates, not live prices)
+const STORES=[['avg','Any store (average)',1],['nofrills','No Frills',.92],['foodbasics','Food Basics',.92],['freshco','FreshCo',.93],['walmart','Walmart',.95],['gianttiger','Giant Tiger',.97],['independent','Your Independent Grocer',1.03],['metro','Metro',1.08],['sobeys','Sobeys',1.1],['loblaws','Loblaws',1.1]];
+const store=()=>STORES.find(s=>s[0]===S.store)||STORES[0];
+const skey=k=>S.store+'::'+k;
+// Multi-store price comparison
+const stName=id=>(STORES.find(s=>s[0]===id)||STORES[0])[1];
+function myStores(){const l=(S.stores||[]).filter(id=>STORES.some(s=>s[0]===id));return l.length?l:[S.store||'avg']}
+const splitOn=()=>!!S.split&&myStores().length>1;
+function ownPrice(k,st){const o=S.prices&&(S.prices[st+'::'+k]||S.prices[k]);return o?[+o[0],+o[1]]:null}
+function priceAt(k,st){const own=ownPrice(k,st);if(own)return own;const p=PRICES[k];if(!p)return null;const f=(STORES.find(s=>s[0]===st)||STORES[0])[2];return [p[0],Math.round(p[1]*f*100)/100]}
+function costAt(k,q,st){const p=priceAt(k,st);if(!p)return null;const n=Math.max(1,Math.ceil(q/p[0]-1e-6));return {st,pr:p,npacks:n,cost:S.packs?n*p[1]:q/p[0]*p[1]}}
+// For planning: the shop's price, or with split shopping the lowest unit price across your stores
+function priceFor(k){if(!splitOn())return priceAt(k,S.store);let b=null;myStores().forEach(st=>{const p=priceAt(k,st);if(p&&(!b||p[1]/p[0]<b[1]/b[0]))b=p});return b}
+
+const storeOpts=()=>STORES.map(s=>`<option value="${s[0]}" ${s[0]===S.store?'selected':''}>${s[1]}</option>`).join('');
+function weekCost(){return groceries().reduce((a,i)=>a+(i.cost||0),0)}
+function servCost(r){let t=0;ingUsed(r).forEach(([n,q,u])=>{const k=ikey(n,u);if(S.pantry&&S.pantry[k])return;const p=priceFor(k);if(p)t+=q/p[0]*p[1]});return t/r.serv}
+const money=v=>'$'+(v>=100?Math.round(v):v.toFixed(2));
+function swapMeal(d,s){
+  const cur=rec(S.plan[key(d,s)]); if(!cur) return;
+  const before=weekCost(), p=prepDayFor(d).p, saved={...S.plan};
+  const same=i=>S.noRepeat?i===d:(saved[key(i,s)]===cur.id&&prepDayFor(i).p===p);
+  const inWeek=new Set(Object.values(saved));
+  const tryWith=id=>{for(let i=0;i<7;i++) if(same(i)) S.plan[key(i,s)]=id; const c=weekCost(); S.plan={...saved}; return c};
+  const opts=wshuffle(allRecipes().filter(r=>r.cat===cur.cat&&r.id!==cur.id&&allowed(r)&&!(S.noRepeat&&inWeek.has(r.id)))).map(r=>({r,c:tryWith(r.id)}));
+  // Only offer swaps that keep the week under budget (or, if already over, that bring the cost down)
+  const ok=opts.filter(o=>before<=S.budget?o.c<=S.budget:o.c<before);
+  if(!ok.length){toast(opts.length?`No other ${cur.cat.toLowerCase()} fits your budget`:'No other recipes in '+cur.cat);return}
+  const nu=ok[0].r;
+  for(let i=0;i<7;i++) if(same(i)){S.plan[key(i,s)]=nu.id;if(S.frzSlots)delete S.frzSlots[key(i,s)]}
+  const diff=weekCost()-before;
+  save();render();
+  toast(`Swapped to ${nu.name} · ${diff>=0?'+':'−'}${money(Math.abs(diff))}`);
+}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function autoFill(){
+  let msg='';
+  if(!S.prepDays||S.prepDays.length<2){S.prepDays=[2,6]; msg=' · added a Wednesday mini-prep';}
+  const order=S.prepDays.slice().sort((a,b)=>a-b);
+  const catOf={B:'Breakfast',L:'Lunch',D:'Dinner',S:'Snack',X:'Dessert'};
+  const U=S.noRepeat?7:order.length, unit=d=>S.noRepeat?d:order.indexOf(prepDayFor(d).p);
+  const want=SLOTS.map(x=>x[0]).filter(s=>(S.slots||[]).includes(s));
+  // Freezer meals go in first (later in the week, since they keep), and cost nothing this week
+  const fixed={}, fixedIds={}, slotOf={};SLOTS.forEach(([s,l])=>slotOf[l]=s);
+  (S.freezer||[]).forEach(f=>{const r=rec(f.rid);if(!r||!(f.n>0))return;const s=slotOf[r.cat];if(!want.includes(s))return;
+    let left=S.noRepeat?1:Math.floor(f.n);
+    for(let d=6;d>=0&&left>0;d--){const k=key(d,s);if(!fixed[k]){fixed[k]=r.id;(fixedIds[s]=fixedIds[s]||new Set()).add(r.id);left--}}});
+  const daysIn={};want.forEach(s=>daysIn[s]=Array.from({length:U},(_,i)=>[0,1,2,3,4,5,6].filter(d=>unit(d)===i&&!fixed[key(d,s)]).length));
+  const apply=ch=>{const plan={};for(const s in ch)for(let d=0;d<7;d++){if(fixed[key(d,s)])continue;const id=ch[s][unit(d)];if(id)plan[key(d,s)]=id}
+    for(const k in fixed)plan[k]=fixed[k];return plan};
+  // Fast cost model (same math as the grocery list) so the planner can try thousands of combinations quickly
+  const vec={}, pc={}, srv={};
+  allRecipes().forEach(r=>{srv[r.id]=r.serv;vec[r.id]=ingUsed(r).map(([n,q,u])=>[ikey(n,u),q/r.serv]).filter(([k])=>!(S.pantry&&S.pantry[k]))});
+  const priceOf=k=>k in pc?pc[k]:(pc[k]=priceFor(k));
+  const extra=(S.extras||[]).reduce((a,x)=>a+(+x.price||0),0), ppl=S.people||1;
+  const costOf=ch=>{const need={},tot={};
+    for(const s in ch)for(let i=0;i<U;i++){const id=ch[s][i],sv=daysIn[s][i]*ppl;if(id&&sv&&vec[id])need[id]=(need[id]||0)+sv}
+    for(const id in need){const make=S.fullBatch?Math.ceil(need[id]/srv[id]-1e-6)*srv[id]:need[id];for(const [k,q] of vec[id])tot[k]=(tot[k]||0)+q*make}
+    let c=extra;for(const k in tot){const p=priceOf(k);if(!p)continue;c+=S.packs?Math.max(1,Math.ceil(tot[k]/p[0]-1e-6))*p[1]:tot[k]/p[0]*p[1]}
+    return c};
+  const t0=Date.now();
+  const optimize=slots=>{
+    const pools={};slots.forEach(s=>pools[s]=allRecipes().filter(r=>r.cat===catOf[s]&&allowed(r)&&!(S.noRepeat&&fixedIds[s]&&fixedIds[s].has(r.id))));
+    const live=slots.filter(s=>pools[s].length);
+    let best=null; const cands=[];
+    const keep=(ch,c)=>{S.plan=apply(ch);cands.push({ch:JSON.parse(JSON.stringify(ch)),c,score:planScore()});return cands.length>=20||Date.now()-t0>1500};
+    const pickBest=()=>cands.sort((a,b)=>b.score-a.score)[0];
+    for(let t=0;t<40&&(Date.now()-t0<2500||!best);t++){
+      const ch={};live.forEach(s=>{const p=wshuffle(pools[s]).map(r=>r.id);ch[s]=Array.from({length:U},(_,i)=>p[i%p.length])});
+      let c=costOf(ch);
+      if(c<=S.budget){ if(keep(ch,c)) return pickBest(); continue; }
+      // Not under budget: keep switching single meals to cheaper ones until it fits or can't get cheaper
+      let improved=true;
+      while(improved&&c>S.budget){improved=false;
+        for(const s of live)for(let i=0;i<U;i++){
+          if(!daysIn[s][i])continue;
+          const keep=ch[s][i];let bi=keep,bc=c;
+          for(const id of pools[s].map(r=>r.id)){if(id===keep||(S.noRepeat&&pools[s].length>=U&&ch[s].includes(id)))continue;ch[s][i]=id;const nc=costOf(ch);if(nc<bc-0.001){bc=nc;bi=id}}
+          ch[s][i]=bi; if(bi!==keep){c=bc;improved=true}
+        }
+      }
+      if(c<=S.budget){ if(keep(ch,c)) return pickBest(); continue; }
+      if(!best||c<best.c) best={ch:JSON.parse(JSON.stringify(ch)),c};
+    }
+    if(cands.length) return pickBest();
+    if(!best) return {ch:{},c:extra};
+    return {...best,over:true};
+  };
+  const old=S.plan, oldF=S.frzSlots;
+  let slots=want.slice(), res=optimize(slots); const fullMin=res.c, dropped=[];
+  // The budget is a hard cap: if every meal can't fit, leave out desserts, snacks, breakfasts, then lunches
+  for(const s of ['X','S','B','L']){ if(!res.over) break; if(!slots.includes(s)||slots.length===1) continue; slots=slots.filter(x=>x!==s); dropped.push(s); res=optimize(slots); }
+  if(res.over){S.plan=old;S.frzSlots=oldF;toast(`Can't plan under ${money(S.budget)}: the cheapest week is ${money(res.c)}`);render();return}
+  S.plan=apply(res.ch); S.frzSlots={}; for(const k in fixed)S.frzSlots[k]=1; S.checked=[];
+  const nf=Object.keys(fixed).length; if(nf) msg+=` · ${nf} freezer meal${nf>1?'s':''} used`;
+  const short=S.noRepeat?want.filter(s=>{const n=allRecipes().filter(r=>r.cat===catOf[s]&&allowed(r)).length;return n>0&&n<7}).map(s=>catOf[s].toLowerCase()):[];
+  const none=want.filter(s=>!allRecipes().some(r=>r.cat===catOf[s]&&allowed(r))).map(s=>catOf[s].toLowerCase());
+  S.planNote=(short.length?`Only a few ${short.join(' and ')} recipes match your tastes, so some repeat. `:'')+(none.length?`No ${none.join(' or ')} recipes match your tastes. `:'')+(dropped.length?`To stay under ${money(S.budget)}, ${(l=>l.length>1?l.slice(0,-1).join(', ')+' and '+l[l.length-1]:l[0])(dropped.map(s=>({X:'desserts',S:'snacks',B:'breakfasts',L:'lunches'})[s]))} were left out. Every meal needs about ${money(fullMin)}.`:'');
+  toast(`Week planned at ${money(weekCost())}${msg}`);
+  save(); render();
+}
+
+/* ---------- Ratings, freezer, past weeks, store order ---------- */
+const isFrz=k=>!!(S.frzSlots&&S.frzSlots[k]);
+const frzReserved=rid=>Object.keys(S.frzSlots||{}).filter(k=>S.plan[k]===rid).length;
+function addFreezer(rid,n){S.freezer=S.freezer||[];const f=S.freezer.find(x=>x.rid===rid);if(f)f.n+=n;else S.freezer.push({rid,n,added:Date.now()})}
+function rateSheet(){
+  const ids=[...new Set(Object.values(S.plan))].filter(id=>rec(id));
+  if(!ids.length){toast('Plan some meals first');return}
+  const draw=()=>{
+    openSheet(`<h2>How were this week's meals?</h2><p class="small muted" style="margin:4px 0 12px">👍 = plan it more often · 👎 = don't plan it again. You can change this any time on the recipe.</p>
+    ${ids.map(id=>{const r=rec(id),v=(S.rpref||{})[id]||0;return `<div class="card row" style="padding:10px 12px;margin-bottom:8px"><div class="emoji" style="width:38px;height:38px;font-size:20px">${r.e||'🍽️'}</div><div class="grow" style="min-width:0;font-weight:600">${esc(r.name)}</div>
+      <button class="chip ${v===1?'tri like':''}" data-rt="${id}|1">👍</button><button class="chip ${v===0?'on':''}" data-rt="${id}|0">😐</button><button class="chip ${v===-1?'tri dis':''}" data-rt="${id}|-1">👎</button></div>`}).join('')}
+    <button class="btn pri big" data-close style="margin-top:6px">Done</button>`);
+    document.querySelectorAll('[data-rt]').forEach(b=>b.onclick=()=>{const [id,v]=b.dataset.rt.split('|');S.rpref=S.rpref||{};if(+v)S.rpref[id]=+v;else delete S.rpref[id];save();draw()});
+  };
+  draw();
+}
+function weekLabel(ts){const d=new Date(ts);const m=new Date(d);m.setDate(d.getDate()-((d.getDay()+6)%7));return 'Week of '+m.toLocaleDateString('en-CA',{month:'short',day:'numeric'})}
+function newWeekSheet(){
+  const ss=sessions(); let extras=0; Object.values(ss).forEach(sess=>Object.values(sess).forEach(e=>extras+=e.make-e.need));
+  const used=Object.keys(S.frzSlots||{}).filter(k=>rec(S.plan[k])).length;
+  openSheet(`<h2>Start next week?</h2><p class="muted">This saves this week to Past weeks${used?`, takes the ${used} freezer meal${used>1?'s':''} you used out of the freezer`:''}${extras?`, puts ${extras} leftover serving${extras>1?'s':''} in the freezer`:''}, and plans a fresh week under your budget.</p>
+  <div class="row"><button class="btn grow" data-close>Cancel</button><button class="btn pri grow" id="nw">Start next week ›</button></div>`);
+  $('#nw').onclick=()=>{closeSheet();startNewWeek()};
+}
+function startNewWeek(){
+  const ss=sessions();
+  if(Object.values(S.plan).some(id=>rec(id))){
+    S.history=[{id:'w'+Date.now(),ts:Date.now(),plan:{...S.plan},frz:{...(S.frzSlots||{})},cost:weekCost()}].concat(S.history||[]).slice(0,12);
+  }
+  // used freezer meals come out; full-batch leftovers go in
+  Object.keys(S.frzSlots||{}).forEach(k=>{const f=(S.freezer||[]).find(x=>x.rid===S.plan[k]);if(f)f.n-=1});
+  if(S.fullBatch)Object.values(ss).forEach(sess=>Object.values(sess).forEach(e=>{const x=e.make-e.need;if(x>0)addFreezer(e.r.id,x)}));
+  S.freezer=(S.freezer||[]).filter(f=>f.n>0);
+  S.plan={};S.frzSlots={};S.checked=[];S.planNote='';
+  autoFill();
+}
+function historySheet(){
+  const hs=(S.history||[]).filter(w=>Object.values(w.plan).some(id=>rec(id)));
+  openSheet(`<h2>Past weeks</h2><p class="small muted" style="margin:4px 0 12px">Re-use a week you liked. Costs are worked out again at today's prices.</p>
+  ${hs.length?hs.map(w=>{const ids=[...new Set(Object.values(w.plan))].filter(id=>rec(id));const dinners=Object.keys(w.plan).filter(k=>k.endsWith('-D')).sort().map(k=>rec(w.plan[k])).filter(Boolean);
+    return `<div class="card"><div class="row"><div class="grow"><b>${weekLabel(w.ts)}</b><div class="small muted">${ids.length} recipes · was ${money(w.cost||0)}</div></div><button class="btn sm pri" data-use="${w.id}">Use again</button></div>
+    <div class="small" style="margin-top:6px">${esc((dinners.length?dinners:ids.map(rec)).slice(0,7).map(r=>r.name).filter((v,i,a)=>a.indexOf(v)===i).join(' · '))}</div></div>`}).join(''):'<div class="card empty">No past weeks yet.<br>Tap <b>New week</b> on the Plan tab when a week is done and it gets saved here.</div>'}
+  <button class="btn" data-close style="width:100%;margin-top:6px">Close</button>`);
+  document.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>{const w=S.history.find(x=>x.id===b.dataset.use);if(!w)return;
+    const go=()=>{S.plan={};Object.entries(w.plan).forEach(([k,id])=>{if(rec(id))S.plan[k]=id});S.frzSlots={};S.checked=[];S.planNote='';save();closeSheet();tab='plan';render();const c=weekCost();toast(`${weekLabel(w.ts)} loaded · ${money(c)}${c>S.budget?' (over budget)':''}`)};
+    if(Object.values(S.plan).some(id=>rec(id)))confirmSheet('Replace this week?','Your current plan will be swapped for this past week.','Use it',go);else go()});
+}
+function freezerAddSheet(){
+  let q='';
+  const draw=()=>{
+    const list=allRecipes().filter(r=>!q||r.name.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
+    openSheet(`<h2>Add to freezer</h2><p class="small muted">Got leftovers or a batch you froze? Add it and the planner uses it first, at no cost.</p>
+    <input id="fq" placeholder="Search recipes" value="${esc(q)}" style="margin:8px 0">
+    <div class="row" style="margin-bottom:10px"><span class="small muted">Servings:</span><input id="fn" type="number" min="1" value="4" style="width:90px"></div>
+    ${list.slice(0,40).map(r=>`<button class="rcard" data-fz="${r.id}"><div class="emoji">${r.e||'🍽️'}</div><div class="grow"><b>${esc(r.name)}</b><div class="small muted">${r.cat}</div></div><span>＋</span></button>`).join('')}
+    <button class="btn" data-close style="width:100%">Close</button>`);
+    const fq=$('#fq');fq.oninput=()=>{q=fq.value.toLowerCase();const n=$('#fn').value;draw();$('#fn').value=n;const f=$('#fq');f.focus();f.setSelectionRange(q.length,q.length)};
+    document.querySelectorAll('[data-fz]').forEach(b=>b.onclick=()=>{const n=Math.max(1,parseInt($('#fn').value)||1);addFreezer(b.dataset.fz,n);save();closeSheet();render();toast(`${n} serving${n>1?'s':''} of ${rec(b.dataset.fz).name} added to freezer`)});
+  };
+  draw();
+}
+function freezerCard(){
+  const fz=(S.freezer||[]).filter(f=>rec(f.rid)&&f.n>0);
+  let h=`<div class="sec-title" style="margin-top:4px">🧊 Freezer</div><div class="card" style="padding:6px 12px">`;
+  if(!fz.length) h+=`<div class="small muted" style="padding:8px 0">Empty. Add leftovers or frozen batches and the planner will use them first, free.</div>`;
+  fz.forEach(f=>{const r=rec(f.rid),res=frzReserved(f.rid);
+    h+=`<div class="gitem"><div class="emoji" style="width:36px;height:36px;font-size:18px">${r.e||'🍽️'}</div><div class="grow" style="min-width:0"><b>${esc(r.name)}</b><div class="small muted">${f.n} serving${f.n>1?'s':''}${res?` · ${res} planned this week`:''}</div></div>
+      <button class="swap" data-fm="${f.rid}">−</button><button class="swap" data-fp="${f.rid}">＋</button></div>`});
+  h+=`<button class="btn sm" id="fadd" style="margin:8px 0">+ Add to freezer</button></div>`;
+  return h;
+}
+function bindFreezer(){
+  const b=$('#fadd');if(b)b.onclick=freezerAddSheet;
+  document.querySelectorAll('[data-fp]').forEach(b=>b.onclick=()=>{addFreezer(b.dataset.fp,1);save();render()});
+  document.querySelectorAll('[data-fm]').forEach(b=>b.onclick=()=>{const f=S.freezer.find(x=>x.rid===b.dataset.fm);if(f){f.n-=1;if(f.n<=0)S.freezer=S.freezer.filter(x=>x!==f)}save();render()});
+}
+const aisles=()=>{const o=(S.aisleOrder||[]).filter(a=>AISLES.includes(a));AISLES.forEach(a=>{if(!o.includes(a))o.push(a)});return o};
+function aisleSheet(){
+  let o=aisles();
+  const draw=()=>{openSheet(`<h2>Your store's layout</h2><p class="small muted" style="margin:4px 0 12px">Put the aisles in the order you walk them. The grocery list and copied list follow this order.</p>
+    ${o.map((a,i)=>`<div class="card row" style="padding:10px 12px;margin-bottom:6px"><b class="grow">${i+1}. ${a}</b><button class="swap" data-up="${i}" ${i?'':'disabled'}>↑</button><button class="swap" data-dn="${i}" ${i<o.length-1?'':'disabled'}>↓</button></div>`).join('')}
+    <div class="row" style="margin-top:8px"><button class="btn grow" data-close>Cancel</button><button class="btn pri grow" id="asv">Save order</button></div>`);
+    document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const i=+b.dataset.up;[o[i-1],o[i]]=[o[i],o[i-1]];draw()});
+    document.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>{const i=+b.dataset.dn;[o[i+1],o[i]]=[o[i],o[i+1]];draw()});
+    $('#asv').onclick=()=>{S.aisleOrder=o;save();closeSheet();viewGrocery()};
+  };
+  draw();
+}
+function viewShopping(){
+  const items=groceries().filter(i=>!i.pantry), ch=new Set(S.checked||[]);
+  const left=items.filter(i=>!ch.has(i.k)), done=items.filter(i=>ch.has(i.k));
+  const leftCost=left.reduce((a,i)=>a+i.cost,0);
+  let h=`<div class="card budget row" style="position:sticky;top:64px;z-index:4"><div class="grow"><div style="font-size:13px;opacity:.8;font-weight:600">SHOPPING · ${esc((splitOn()?myStores().map(stName).join(' + '):store()[1]).toUpperCase())}</div><div style="font-size:24px;font-weight:700">${left.length} left · ~${money(leftCost)}</div></div><button class="btn sm" id="shopx" style="background:var(--lime);color:#14281c;border:0">Done</button></div>`;
+  if(!left.length&&items.length) h+=`<div class="card empty" style="font-size:18px">🎉 All done!</div>`;
+  storeGroups(left).forEach(([st,g])=>{if(splitOn())h+=`<div class="sec-title" style="font-size:17px;color:var(--ink);margin-top:20px">🏪 ${esc(stName(st))} · ${g.length} item${g.length>1?'s':''}</div>`;
+  aisles().forEach(a=>{const l=g.filter(i=>(AISLES.includes(i.a)?i.a:'Other')===a).sort((x,y)=>x.n.localeCompare(y.n));if(!l.length)return;
+    h+=`<div class="sec-title" style="font-size:15px">${a}</div><div class="card" style="padding:0 14px">${l.map(i=>`<button class="shopitem" data-sk="${esc(i.k)}"><span class="box"></span><span class="grow"><b>${esc(i.n)}</b><br><span class="muted">${i.q==null?'':fmtIng(i.q,i.u,i.n)}${i.pr&&S.packs?` · ${i.npacks} pack${i.npacks>1?'s':''}`:''}</span></span><span class="muted">${i.priced?money(i.cost):''}</span></button>`).join('')}</div>`})});
+  if(done.length) h+=`<details style="margin-top:14px"><summary>In cart (${done.length}) · tap to put back</summary><div class="card" style="padding:0 14px;margin-top:8px">${done.map(i=>`<button class="shopitem done" data-sk="${esc(i.k)}"><span class="box">✓</span><span class="grow">${esc(i.n)}</span></button>`).join('')}</div></details>`;
+  $('#view').innerHTML=h;
+  $('#shopx').onclick=()=>{S.shop=false;save();viewGrocery()};
+  document.querySelectorAll('[data-sk]').forEach(b=>b.onclick=()=>{const s=new Set(S.checked||[]);s.has(b.dataset.sk)?s.delete(b.dataset.sk):s.add(b.dataset.sk);S.checked=[...s];save();viewShopping()});
+}
+
+/* ---------- Views ---------- */
+function render(){
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  const planned=Object.values(S.plan).filter(id=>rec(id)).length;
+  $('#hsub').textContent=planned?`${planned} meals planned this week`:'Meal planner';
+  ({plan:viewPlan,prep:viewPrep,grocery:viewGrocery,recipes:viewRecipes})[tab]();
+}
+
+function bar(label,val,goal,color){
+  const pct=Math.min(100,goal?val/goal*100:0);
+  return `<div class="bar">${label} <b style="color:var(--ink)">${Math.round(val)}</b>/${goal}<div class="t"><i style="width:${pct}%;background:${color}"></i></div></div>`;
+}
+
+function viewPlan(){
+  const planned=Object.values(S.plan).filter(id=>rec(id));
+  const uniq=new Set(planned).size;
+  let avg=0,daysWith=0;
+  for(let d=0;d<7;d++){const t=dayTotals(d);if(t.cal){avg+=t.cal;daysWith++}}
+  avg=daysWith?Math.round(avg/daysWith):0;
+  let warns=0;for(let d=0;d<7;d++)SLOTS.forEach(([s])=>{if(slotWarn(d,s))warns++});
+  const cost=weekCost(), pct=Math.min(100,S.budget?cost/S.budget*100:0), over=cost>S.budget;
+  const unpriced=groceries().filter(i=>!i.priced&&!i.pantry).length;
+  const slots=SLOTS.filter(([s])=>(S.slots||[]).includes(s));
+  let h=`<div class="card budget"><div class="row"><div class="grow"><div style="font-size:12px;opacity:.8;font-weight:600">THIS WEEK'S GROCERIES · ${esc((splitOn()?'Split: '+myStores().map(stName).join(' + '):store()[1]).toUpperCase())}</div>
+    <div style="font-size:28px;font-weight:700;letter-spacing:-.02em">${money(cost)} <span style="font-size:14px;opacity:.75;font-weight:500">of ${money(S.budget)} budget</span></div></div>
+    <button class="btn sm" id="bud" style="background:transparent;color:inherit;border-color:rgba(255,255,255,.3)">Edit</button></div>
+    <div class="t"><i class="${over?'over':''}" style="width:${pct}%"></i></div>
+    <div style="font-size:12px;opacity:.8;margin-top:6px">${S.planNote&&planned.length?esc(S.planNote)+'<br>':''}${over?`${money(cost-S.budget)} over. Swap a meal (↻) or re-plan.`:planned.length?`${money(S.budget-cost)} left · ${S.packs?'store pack sizes':'exact amounts'}${unpriced?` · ${unpriced} item${unpriced>1?'s':''} without a price`:''}`:'Plan your week to see the total'}</div></div>
+  <div class="toolbar">
+    <button class="btn pri" id="auto">✨ ${planned.length?'Re-plan week':'Plan my week'}</button>
+    ${planned.length?'<button class="btn" id="rate">⭐ Rate meals</button><button class="btn" id="nweek">📅 New week</button>':''}
+    <button class="btn" id="hist">🗂 Past weeks</button>
+    <button class="btn" id="clear">Clear</button>
+  </div>
+  <div class="stats">
+    <div class="stat"><b>${planned.length}<span style="font-size:13px">/${slots.length*7}</span></b><span>Meals planned</span></div>
+    <div class="stat"><b>${uniq}</b><span>Recipes to cook</span></div>
+    <div class="stat"><b>${avg||'—'}</b><span>Avg cal / day</span></div>
+  </div>`;
+  const cnt={};Object.values(S.plan).forEach(id=>{if(rec(id))cnt[id]=(cnt[id]||0)+1});const reps=Object.values(cnt).filter(n=>n>1).length;
+  if(S.noRepeat&&reps) h+=`<div class="card" style="background:var(--warn-bg);border-color:transparent"><b class="warnic">↻ ${reps} meal${reps>1?'s are':' is'} planned more than once.</b> <span class="small">Tap Re-plan week for all-different meals.</span></div>`;
+  if(warns) h+=`<div class="card" style="background:var(--warn-bg);border-color:transparent"><b class="warnic">⚠ ${warns} meal${warns>1?'s':''} past fridge life.</b> <span class="small">Freeze those portions on prep day or add another prep day in settings.</span></div>`;
+  if(!planned.length) h+=`<div class="card empty">Tap <b>Plan my week</b> for a batch-friendly plan under your budget, or tap any slot below to choose a recipe.</div>`;
+  for(let d=0;d<7;d++){
+    const t=dayTotals(d);
+    const isPrep=(S.prepDays||[]).includes(d);
+    h+=`<div class="card day"><div class="row" style="margin-bottom:4px"><h3 class="grow">${DAYS[d]}</h3>${isPrep?'<span class="tag" style="background:var(--warn-bg);color:var(--accent)">🔪 Prep day</span>':''}<span class="small muted">${t.cal?Math.round(t.cal)+' cal':''}</span></div>`;
+    slots.forEach(([s,lab])=>{
+      const r=rec(S.plan[key(d,s)]); const w=slotWarn(d,s);
+      h+=`<div class="slot"><div class="lab">${lab}</div><button class="meal" data-slot="${d}|${s}">${r?
+        `<div class="nm">${r.e||'🍽️'} ${esc(r.name)}${(S.rpref||{})[r.id]===1?' 👍':''}</div><div class="meta">${isFrz(key(d,s))?'<span style="color:var(--p);font-weight:600">🧊 From your freezer · free</span> · thaw the night before':`${r.cal} cal · ${r.p}g protein · ${money(servCost(r))}`}${w?` · <span class="warnic">⚠ ${w.gap} days old — freeze</span>`:''}</div>`
+        :`<span class="add">+ Add ${lab.toLowerCase()}</span>`}</button>${r?`<button class="swap" data-swap="${d}|${s}" aria-label="Swap meal">↻</button>`:''}</div>`;
+    });
+    if(t.cal) h+=`<div class="bars">${bar('Cal',t.cal,S.goals.cal,'var(--accent)')}${bar('P',t.p,S.goals.p,'var(--p)')}${bar('C',t.c,S.goals.c,'var(--c)')}${bar('F',t.f,S.goals.f,'var(--f)')}</div>`;
+    h+=`</div>`;
+  }
+  $('#view').innerHTML=h;
+  $('#auto').onclick=autoFill;
+  $('#clear').onclick=()=>confirmSheet('Clear the whole week?','All planned meals will be removed. Your recipes stay.','Clear week',()=>{S.plan={};S.frzSlots={};S.checked=[];S.planNote='';save();render()});
+  if($('#rate'))$('#rate').onclick=rateSheet; if($('#nweek'))$('#nweek').onclick=newWeekSheet; $('#hist').onclick=historySheet;
+  document.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{const [d,s]=b.dataset.slot.split('|');pickSheet(+d,s)});
+  document.querySelectorAll('[data-swap]').forEach(b=>b.onclick=()=>{const [d,s]=b.dataset.swap.split('|');swapMeal(+d,s)});
+  $('#bud').onclick=settingsSheet;
+}
+
+function viewPrep(){
+  const ss=sessions(); const order=Object.keys(ss).map(Number).sort((a,b)=>a-b);
+  const thaw=Object.keys(S.frzSlots||{}).filter(k=>rec(S.plan[k])).map(k=>{const [d]=k.split('-');return {d:+d,r:rec(S.plan[k])}}).sort((a,b)=>a.d-b.d);
+  const thawH=thaw.length?`<div class="sec-title">🧊 Thaw the night before</div><div class="card small">${thaw.map(t=>`<div style="padding:3px 0"><b>${SD[t.d]}:</b> ${esc(t.r.name)} (move to fridge ${SD[(t.d+6)%7]} night)</div>`).join('')}</div>`:'';
+  if(!order.length){$('#view').innerHTML=freezerCard()+thawH+`<div class="card empty">Nothing to cook yet.<br>Plan some meals first and your cooking sessions will show up here.</div>`;bindFreezer();return}
+  let totalServ=0,totalTime=0,totalRec=0;
+  order.forEach(p=>Object.values(ss[p]).forEach(e=>{totalServ+=e.need;totalTime+=e.r.time;totalRec++}));
+  let h=freezerCard()+thawH+`<div class="stats">
+    <div class="stat"><b>${order.length}</b><span>Prep session${order.length>1?'s':''}</span></div>
+    <div class="stat"><b>${totalServ}</b><span>Containers</span></div>
+    <div class="stat"><b>${Math.round(totalTime/60*10)/10}h</b><span>Cook time (approx.)</span></div>
+  </div>`;
+  order.forEach(p=>{
+    const list=Object.values(ss[p]).sort((a,b)=>b.r.time-a.r.time);
+    const mins=list.reduce((a,e)=>a+e.r.time,0);
+    h+=`<div class="sec-title">🔪 ${DAYS[p]} prep · ${list.length} recipe${list.length>1?'s':''} · ~${mins} min</div>`;
+    h+=`<div class="card session small"><b>Game plan:</b> start <b>${esc(list[0].r.name)}</b> first (longest). Get rice/pasta and oven trays going together, then chop while things cook. Let everything cool before you put lids on.</div>`;
+    list.forEach(e=>{
+      const scale=e.make/e.r.serv, xtra=e.make-e.need;
+      const days=[...e.days].sort((a,b)=>a-b).map(d=>SD[d]).join(', ');
+      h+=`<div class="card"><div class="row"><div class="emoji">${e.r.e||'🍽️'}</div><div class="grow"><b>${esc(e.r.name)}</b>
+        <div class="small muted">Make ${e.make} serving${e.make>1?'s':''} (${scale===1?'1×':'×'+(Math.round(scale*100)/100)} recipe) · ${e.r.time} min</div>${xtra>0?`<div class="small" style="color:var(--p);font-weight:600">🧊 ${xtra} extra serving${xtra>1?'s':''} for the freezer</div>`:''}</div></div>
+        <div style="margin-top:8px"><span class="tag">Eat: ${days}</span><span class="tag">Fridge ${e.r.fridge}d</span>${e.warn?'<span class="tag w">Freeze late-week portions</span>':''}</div>
+        <details><summary>Ingredients & steps</summary>
+          <ul class="small" style="padding-left:18px">${ingUsed(e.r).map(([n,q,u])=>`<li>${fmtIng(q*scale,u,n)} ${esc(n)}</li>`).join('')}</ul>${skipped(e.r).length?`<div class="small muted">Leave out: ${esc(skipped(e.r).map(i=>i[0].toLowerCase()).join(', '))}</div>`:''}
+          <ol class="steps small">${e.r.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>
+        </details></div>`;
+    });
+  });
+  $('#view').innerHTML=h; bindFreezer();
+}
+
+function viewGrocery(){
+  if(S.shop) return viewShopping();
+  const items=groceries();
+  const checked=new Set(S.checked||[]);
+  const buy=items.filter(i=>!i.pantry), have=items.filter(i=>i.pantry);
+  const left=buy.filter(i=>!checked.has(i.k)).length;
+  const total=buy.reduce((a,i)=>a+i.cost,0), spent=buy.filter(i=>checked.has(i.k)).reduce((a,i)=>a+i.cost,0);
+  let h=`<div class="toolbar"><button class="btn pri" id="shop">🛒 Shopping mode</button><button class="btn" id="copy">Copy list</button><button class="btn" id="aorder">↕ Store order</button><button class="btn" id="addx">+ Add item</button><button class="btn" id="uncheck">Uncheck all</button></div>`;
+  if(!items.length){$('#view').innerHTML=h+`<div class="card empty">Your grocery list builds itself from your plan.<br>Add meals on the Plan tab.</div>`;bindGro();return}
+  h+=`<div class="stats"><div class="stat"><b>${money(total)}</b><span>Estimated total</span></div><div class="stat"><b>${money(spent)}</b><span>In cart</span></div><div class="stat"><b>${left}</b><span>Items left</span></div></div>
+  <div class="toggle card" style="padding:10px 14px"><div><b>Store pack sizes</b><div class="small muted">Price whole packs, the way you actually buy them</div></div><input type="checkbox" id="packs" ${S.packs?'checked':''}></div>
+  ${compareCard(buy)}
+  <div class="small muted" style="margin:0 4px 6px">${splitOn()?'Each item is listed under the store where it\'s cheapest.':`Prices are for ${esc(store()[1])}.`} Estimates unless you've entered your own. Tap a price to add flyer prices or mark something you already have.</div>`;
+  const row=i=>{const on=checked.has(i.k);
+    const qty=i.q==null?'':fmtIng(i.q,i.u,i.n);
+    const packTxt=(i.pr&&S.packs&&!i.pantry?` · ${i.npacks} × ${fmtIng(i.pr[0],i.u,i.n)} pack`:'')+(i.own&&!i.pantry?' · your price':'');
+    return `<div class="gitem ${on?'done':''}"><input type="checkbox" data-k="${esc(i.k)}" ${on?'checked':''} ${i.pantry?'disabled':''}><div style="min-width:0"><div class="gn">${esc(i.n)} <span class="muted small">${qty}</span></div><div class="small muted">${esc([...i.from].join(', '))}${packTxt}</div></div>
+    <span class="gq"><button class="price" data-price="${esc(i.k)}">${i.pantry?'Have it':i.priced?money(i.cost):'Add price'}</button></span></div>`};
+  storeGroups(buy).forEach(([st,its])=>{
+    if(splitOn()) h+=`<div class="sec-title" style="font-size:15px;color:var(--ink);margin-top:22px">🏪 ${esc(stName(st))} · ${money(its.reduce((s,i)=>s+i.cost,0))}</div>`;
+    aisles().forEach(a=>{
+      const list=its.filter(i=>(AISLES.includes(i.a)?i.a:'Other')===a).sort((x,y)=>x.n.localeCompare(y.n));
+      if(!list.length) return;
+      h+=`<div class="sec-title">${a} · ${money(list.reduce((s,i)=>s+i.cost,0))}</div><div class="card" style="padding:4px 12px">${list.map(row).join('')}</div>`;
+    });
+  });
+  if(have.length) h+=`<div class="sec-title">Already in your kitchen</div><div class="card" style="padding:4px 12px">${have.map(row).join('')}</div>`;
+  $('#view').innerHTML=h; bindGro(); bindCompare();
+  $('#packs').onchange=e=>{S.packs=e.target.checked;save();viewGrocery()};
+  document.querySelectorAll('[data-k]').forEach(c=>c.onchange=()=>{
+    const s=new Set(S.checked||[]); c.checked?s.add(c.dataset.k):s.delete(c.dataset.k); S.checked=[...s]; save(); viewGrocery();
+  });
+  document.querySelectorAll('[data-price]').forEach(b=>b.onclick=()=>priceSheet(items.find(i=>i.k===b.dataset.price)));
+  function bindGro(){
+    $('#copy').onclick=async()=>{
+      const its=groceries(); const ch=new Set(S.checked||[]);
+      let txt='Grocery list\n';
+      storeGroups(its.filter(i=>!i.pantry&&!ch.has(i.k))).forEach(([st,g])=>{if(splitOn())txt+=`\n=== ${stName(st)} ===\n`;
+        aisles().forEach(a=>{const l=g.filter(i=>(AISLES.includes(i.a)?i.a:'Other')===a);if(!l.length)return;txt+=`\n${a}\n`+l.map(i=>`- ${i.q==null?'':fmtIng(i.q,i.u,i.n)+' '}${i.n}${i.priced?' ('+money(i.cost)+')':''}`).join('\n')+'\n'})});
+      txt+=`\nEstimated total: ${money(its.filter(i=>!i.pantry).reduce((a,i)=>a+i.cost,0))}`;
+      try{await navigator.clipboard.writeText(txt);toast('List copied')}catch(e){showText(txt)}
+    };
+    $('#uncheck').onclick=()=>{S.checked=[];save();viewGrocery()};
+    $('#shop').onclick=()=>{S.shop=true;save();window.scrollTo(0,0);viewGrocery()};
+    $('#aorder').onclick=aisleSheet;
+    $('#addx').onclick=()=>{
+      openSheet(`<h2>Add an item</h2><p class="small muted">For things outside your recipes, like coffee or paper towels.</p><form id="xf"><input id="xn" placeholder="e.g. Coffee beans"><div class="field"><label>Price (optional)</label><input id="xp" type="number" step="0.01" min="0" placeholder="0.00"></div><div class="row" style="margin-top:12px"><button type="button" class="btn grow" data-close>Cancel</button><button class="btn pri grow">Add</button></div></form>`);
+      $('#xf').onsubmit=e=>{e.preventDefault();const n=$('#xn').value.trim();if(!n)return;S.extras=(S.extras||[]).concat({id:'x'+Date.now(),n,price:parseFloat($('#xp').value)||0});save();closeSheet();viewGrocery()};
+    };
+  }
+}
+function priceSheet(i){
+  if(!i) return;
+  if(i.extra){
+    const x=S.extras.find(e=>e.id===i.extra);
+    openSheet(`<h2>${esc(i.n)}</h2><div class="field"><label>Price</label><input id="pp" type="number" step="0.01" min="0" value="${x.price||''}"></div>
+    <div class="row"><button class="btn danger" id="rmx">Remove</button><button class="btn grow" data-close>Cancel</button><button class="btn pri grow" id="psv">Save</button></div>`);
+    $('#psv').onclick=()=>{x.price=parseFloat($('#pp').value)||0;save();closeSheet();viewGrocery()};
+    $('#rmx').onclick=()=>{S.extras=S.extras.filter(e=>e.id!==x.id);save();closeSheet();viewGrocery()};
+    return;
+  }
+  const sts=myStores(), base=priceFor(i.k)||[i.u==='g'||i.u==='ml'?500:1,0];
+  const unitLab=i.u==='pc'?'items':i.u;
+  openSheet(`<h2>${esc(i.n)}</h2><p class="small muted">You need ${fmtIng(i.q,i.u,i.n)} this week. Enter the shelf or flyer price at each store; leave blank to use the estimate.</p>
+  <div class="field"><label>Pack size (${unitLab})</label><input id="ps" type="number" step="any" min="0" value="${base[0]}"></div>
+  ${sts.map(st=>{const own=ownPrice(i.k,st),est=priceAt(i.k,st),c=i.by&&i.by[st];return `<div class="row field"><label class="grow" style="margin:0;font-size:14px;color:var(--ink)">${esc(stName(st))}${c?`<div class="small muted">${money(c.cost)} for this week</div>`:''}</label><span>$</span><input data-stp="${st}" type="number" step="0.01" min="0" style="width:110px" value="${own?own[1]:''}" placeholder="${est&&PRICES[i.k]?'est. '+est[1].toFixed(2):'0.00'}"></div>`}).join('')}
+  <label class="toggle"><div><b>I already have this</b><div class="small muted">Leaves it off the bill. Good for oil, spices and sauces.</div></div><input type="checkbox" id="ph" ${i.pantry?'checked':''}></label>
+  <div class="row" style="margin-top:8px"><button class="btn" id="prs">Clear my prices</button><button class="btn grow" data-close>Cancel</button><button class="btn pri grow" id="psv">Save</button></div>`);
+  $('#psv').onclick=()=>{
+    const ps=parseFloat($('#ps').value);
+    S.prices=S.prices||{}; S.pantry=S.pantry||{};
+    delete S.prices[i.k];
+    document.querySelectorAll('[data-stp]').forEach(inp=>{const st=inp.dataset.stp,v=parseFloat(inp.value);
+      if(inp.value!==''&&v>=0&&ps>0)S.prices[st+'::'+i.k]=[ps,v];else delete S.prices[st+'::'+i.k]});
+    if($('#ph').checked)S.pantry[i.k]=1;else delete S.pantry[i.k];
+    save();closeSheet();viewGrocery();
+  };
+  $('#prs').onclick=()=>{delete S.prices[i.k];STORES.forEach(s=>delete S.prices[s[0]+'::'+i.k]);save();closeSheet();viewGrocery()};
+}
+function storeGroups(items){
+  if(!splitOn()) return [[S.store,items]];
+  const g={};items.forEach(i=>{const st=i.store||myStores()[0];(g[st]=g[st]||[]).push(i)});
+  return myStores().filter(st=>g[st]).map(st=>[st,g[st]]);
+}
+function compareCard(buy){
+  const sts=myStores(); if(sts.length<2) return `<button class="rcard" id="cmpset"><div class="emoji">🏪</div><div class="grow"><b>Compare stores</b><div class="small muted">Add the stores you shop at to see where this week is cheapest.</div></div>›</button>`;
+  const priced=buy.filter(i=>i.by&&Object.keys(i.by).length);
+  const tot={};sts.forEach(st=>tot[st]=priced.reduce((a,i)=>a+(i.by[st]?i.by[st].cost:0),0));
+  const splitTot=priced.reduce((a,i)=>a+Math.min(...Object.values(i.by).map(c=>c.cost)),0);
+  const best=sts.slice().sort((a,b)=>tot[a]-tot[b])[0];
+  const own=priced.filter(i=>sts.some(st=>ownPrice(i.k,st))).length;
+  const nStores=new Set(priced.map(i=>Object.values(i.by).sort((a,b)=>a.cost-b.cost)[0].st)).size;
+  return `<div class="card"><div class="row" style="margin-bottom:6px"><b class="grow">🏪 This week at each store</b><button class="btn sm" id="cmpset">Edit stores</button></div>
+  ${sts.slice().sort((a,b)=>tot[a]-tot[b]).map(st=>`<div class="row" style="padding:6px 0;border-top:1px solid var(--line)"><span class="grow">${esc(stName(st))}${st===best?' <span class="tag">Cheapest</span>':''}</span><b>${money(tot[st])}</b>
+    ${!splitOn()&&st===S.store?'<span class="tag" style="margin-left:6px">Shopping here</span>':`<button class="btn sm" data-usest="${st}" style="margin-left:6px">${splitOn()?'Shop only here':'Shop here'}</button>`}</div>`).join('')}
+  <div class="row" style="padding:8px 0 2px;border-top:1px solid var(--line)"><span class="grow"><b>Split between stores</b><div class="small muted">${nStores} store${nStores>1?'s':''} · saves ${money(Math.max(0,tot[best]-splitTot))} vs ${esc(stName(best))}</div></span><b>${money(splitTot)}</b>
+    ${splitOn()?'<span class="tag" style="margin-left:6px">On</span>':'<button class="btn sm pri" id="splitgo" style="margin-left:6px">Split</button>'}</div>
+  <div class="small muted" style="margin-top:6px">${own?`${own} item${own>1?'s use':' uses'} your own prices; the rest are estimates.`:'All estimates so far. Enter flyer prices for each store (tap a price) to make the comparison real.'}</div></div>`;
+}
+function bindCompare(){
+  const c=$('#cmpset');if(c)c.onclick=settingsSheet;
+  const sg=$('#splitgo');if(sg)sg.onclick=()=>{S.split=true;save();viewGrocery();toast('Split shopping on · list grouped by store')};
+  document.querySelectorAll('[data-usest]').forEach(b=>b.onclick=()=>{S.store=b.dataset.usest;S.split=false;save();viewGrocery();toast('Shopping at '+stName(S.store))});
+}
+
+function viewRecipes(){
+  const q=recQuery.toLowerCase();
+  const list=allRecipes().filter(r=>(recFilter==='All'||recFilter===r.cat||(recFilter==='Mine'&&r.custom))&&(!q||r.name.toLowerCase().includes(q)));
+  let h=`<button class="rcard" id="tastes" style="border-color:var(--p)"><div class="emoji">😋</div><div class="grow"><b>Your tastes</b><div class="small muted">${tasteSummary()}</div></div><span style="font-size:20px">›</span></button>
+  <div class="row" style="margin-bottom:10px"><input id="rq" placeholder="Search recipes" value="${esc(recQuery)}"><button class="btn pri" id="newr" style="white-space:nowrap">+ New</button></div>
+  <div class="chips" style="margin-bottom:12px">${['All',...CATS,'Mine'].map(c=>`<button class="chip ${c===recFilter?'on':''}" data-f="${c}">${c==='Mine'?'My recipes':c}</button>`).join('')}</div>`;
+  if(!list.length) h+=`<div class="card empty">${recFilter==='Mine'?'No recipes of your own yet. Tap <b>+ New</b> to add your go-to meals.':'No matches.'}</div>`;
+  list.forEach(r=>h+=recCard(r));
+  $('#view').innerHTML=h;
+  const rq=$('#rq'); rq.oninput=()=>{recQuery=rq.value;const pos=rq.selectionStart;viewRecipes();const n=$('#rq');n.focus();n.setSelectionRange(pos,pos)};
+  $('#newr').onclick=()=>editSheet(null);
+  $('#tastes').onclick=()=>tasteSheet();
+  document.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{recFilter=b.dataset.f;viewRecipes()});
+  document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>detailSheet(b.dataset.r));
+}
+function recCard(r,attr='data-r',extra=''){
+  return `<button class="rcard" ${attr}="${r.id}"><div class="emoji">${r.e||'🍽️'}</div><div class="grow" style="min-width:0"><b>${esc(r.name)}</b>${extra}
+  <div class="macros"><span><b>${r.cal}</b> cal</span><span><b>${r.p}g</b> P</span><span><b>${r.c}g</b> C</span><span><b>${r.f}g</b> F</span></div>
+  <div class="small muted">${r.cat} · ${money(servCost(r))}/serving · ${r.time} min · fridge ${r.fridge}d${r.custom?' · yours':''}</div>${goalHits(r).slice(0,3).map(g=>`<span class="tag">${g[1]} ${g[2]}</span>`).join('')}${liked(r)&&allowed(r)?'<span class="tag">👍 You like this</span>':''}${!allowed(r)?`<span class="tag w">Not for you · ${esc(whyNot(r))}</span>`:''}</div></button>`;
+}
+
+/* ---------- Sheets ---------- */
+function openSheet(html){$('#sheet').innerHTML=html;$('#ov').classList.add('open');$('#sheet').scrollTop=0;
+  document.querySelectorAll('#sheet [data-close]').forEach(b=>b.onclick=closeSheet)}
+function closeSheet(){$('#ov').classList.remove('open')}
+$('#ov').onclick=e=>{if(e.target.id==='ov')closeSheet()};
+function confirmSheet(title,msg,okLabel,fn){
+  openSheet(`<h2>${esc(title)}</h2><p class="muted">${esc(msg)}</p><div class="row"><button class="btn grow" data-close>Cancel</button><button class="btn pri grow" id="okb" style="background:var(--warn);border-color:var(--warn)">${esc(okLabel)}</button></div>`);
+  $('#okb').onclick=()=>{closeSheet();fn()};
+}
+function showText(txt){openSheet(`<h2>Copy your list</h2><p class="small muted">Select all and copy.</p><textarea style="min-height:300px" readonly>${esc(txt)}</textarea><button class="btn" data-close style="margin-top:10px;width:100%">Done</button>`);setTimeout(()=>{const t=$('#sheet textarea');t.focus();t.select()},50)}
+
+function pickSheet(d,s){
+  const lab=SLOTS.find(x=>x[0]===s)[1];
+  const cur=S.plan[key(d,s)];
+  let showAll=false;
+  const base=weekCost();
+  const trial=id=>{const sv=S.plan[key(d,s)];S.plan[key(d,s)]=id;const c=weekCost();if(sv)S.plan[key(d,s)]=sv;else delete S.plan[key(d,s)];return{c,d:c-base}};
+  const usedOn=id=>{const ds=[];for(let i=0;i<7;i++)SLOTS.forEach(([x])=>{if(!(i===d&&x===s)&&S.plan[key(i,x)]===id&&!ds.includes(SD[i]))ds.push(SD[i])});return ds.join(', ')};
+  const draw=()=>{
+    const list=allRecipes().filter(r=>showAll||(r.cat===lab&&allowed(r))).sort((a,b)=>(allowed(b)-allowed(a))||(liked(b)-liked(a)));
+    openSheet(`<h2>${DAYS[d]} · ${lab}</h2>
+    <div class="row" style="margin:8px 0 12px"><button class="chip ${!showAll?'on':''}" id="c1">${lab} recipes</button><button class="chip ${showAll?'on':''}" id="c2">All recipes</button></div>
+    ${list.map(r=>{const t=trial(r.id);return recCard(r,'data-pick',`<div class="small" style="font-weight:600;color:${t.c>S.budget?'var(--warn)':'var(--p)'}">${t.d>=0?'+':'−'}${money(Math.abs(t.d))} to week${t.c>S.budget?' · over budget':''}</div>${usedOn(r.id)?`<span class="tag w">Already on ${usedOn(r.id)}</span>`:''}`)}).join('')||'<div class="empty">No recipes here yet.</div>'}
+    <div class="row" style="margin-top:8px">${cur?`<button class="btn danger grow" id="rm">Remove meal</button>${S.noRepeat?'':'<button class="btn grow" id="cpy">Use for rest of week</button>'}`:''}<button class="btn grow" data-close>Close</button></div>`);
+    $('#c1').onclick=()=>{showAll=false;draw()};$('#c2').onclick=()=>{showAll=true;draw()};
+    document.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const u=usedOn(b.dataset.pick);S.plan[key(d,s)]=b.dataset.pick;if(S.frzSlots)delete S.frzSlots[key(d,s)];save();closeSheet();render();const c=weekCost();if(S.noRepeat&&u)toast(`Heads up: this is already planned on ${u}`);else if(c>S.budget)toast(`Heads up: that puts you ${money(c-S.budget)} over budget`)});
+    if(cur){$('#rm').onclick=()=>{delete S.plan[key(d,s)];if(S.frzSlots)delete S.frzSlots[key(d,s)];save();closeSheet();render()};
+      if($('#cpy'))$('#cpy').onclick=()=>{for(let i=d;i<7;i++)S.plan[key(i,s)]=cur;save();closeSheet();render();toast(`${lab} set through Sunday`)}}
+  };
+  draw();
+}
+
+function detailSheet(id){
+  const r=rec(id); if(!r) return;
+  openSheet(`<div class="row"><div class="emoji">${r.e||'🍽️'}</div><div class="grow"><h2>${esc(r.name)}</h2><div class="small muted">${r.cat} · ${r.serv} servings · ${r.time} min · keeps ${r.fridge} days in fridge</div></div></div>
+  <div class="grid4" style="margin:14px 0">${[['Cal',r.cal,''],['Protein',r.p,'g'],['Carbs',r.c,'g'],['Fat',r.f,'g']].map(([l,v,u])=>`<div class="stat"><b>${v}${u}</b><span>${l} / serving</span></div>`).join('')}</div>
+  <div class="sec-title" style="margin-top:4px">Ingredients</div><div class="card small"><ul style="margin:0;padding-left:18px">${r.ing.map(i=>{const [n,q,u]=i,sk=skipped(r).includes(i);return `<li style="${sk?'text-decoration:line-through;opacity:.55':''}">${fmtIng(q,u,n)} ${esc(n)}${sk?' (leaving out)':''}</li>`}).join('')}</ul></div>
+  <div class="sec-title">Steps</div><div class="card small"><ol class="steps">${r.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol></div>
+  <div class="row" style="margin-bottom:10px"><button class="btn grow" id="rl" style="${(S.rpref||{})[r.id]===1?'background:var(--brand-2);border-color:var(--p);color:var(--p)':''}">👍 ${(S.rpref||{})[r.id]===1?'Loved':'Love it'}</button><button class="btn grow" id="rn" style="${(S.rpref||{})[r.id]===-1?'background:var(--warn-bg);border-color:var(--warn);color:var(--warn)':''}">👎 ${(S.rpref||{})[r.id]===-1?'Never planned':'Never plan'}</button></div>
+  ${whyNot(r)&&(S.rpref||{})[r.id]!==-1?`<div class="small warnic" style="margin:-4px 2px 10px">Skipped by planner: ${esc(whyNot(r))}</div>`:''}
+  <button class="btn" id="tofz" style="width:100%;margin-bottom:10px">🧊 Add to freezer${(S.freezer||[]).find(f=>f.rid===r.id)?` (have ${(S.freezer||[]).find(f=>f.rid===r.id).n})`:''}</button>
+  <div class="row">${r.custom?`<button class="btn danger" id="del">Delete</button><button class="btn grow" id="ed">Edit</button>`:`<button class="btn grow" id="dup">Copy & edit</button>`}<button class="btn pri grow" data-close>Done</button></div>`);
+  const setP=v=>{S.rpref=S.rpref||{};if(S.rpref[r.id]===v)delete S.rpref[r.id];else S.rpref[r.id]=v;save();detailSheet(id);if(tab==='recipes')viewRecipes()};
+  $('#rl').onclick=()=>setP(1);$('#rn').onclick=()=>setP(-1);
+  $('#tofz').onclick=()=>{addFreezer(r.id,r.serv);save();detailSheet(id);toast(`${r.serv} servings added to freezer`)};
+  if(r.custom){$('#ed').onclick=()=>editSheet(r);
+    $('#del').onclick=()=>confirmSheet('Delete recipe?',`"${r.name}" will be removed from your plan too.`,'Delete',()=>{S.custom=S.custom.filter(x=>x.id!==r.id);Object.keys(S.plan).forEach(k=>{if(S.plan[k]===r.id)delete S.plan[k]});save();render()})}
+  else $('#dup').onclick=()=>editSheet({...r,id:null,name:r.name+' (mine)'});
+}
+
+function ingToText(ing){return ing.map(([n,q,u,a])=>`${+q.toFixed(2)} ${u} ${n}${a?' | '+a:''}`).join('\n')}
+function parseIng(txt){
+  return txt.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+    let [main,aisle]=l.split('|').map(x=>x.trim());
+    const m=main.match(/^([\d.,/]+)\s*([a-zA-Z]+)?\s+(.*)$/);
+    let q=1,u='pc',n=main;
+    if(m){
+      q=m[1].includes('/')?m[1].split('/').reduce((a,b)=>a/b):parseFloat(m[1].replace(',','.'))||1;
+      const uu=(m[2]||'').toLowerCase().replace(/s$/,'');
+      if(UNITS.includes(uu)){u=uu;n=m[3]}else{n=((m[2]||'')+' '+m[3]).trim()}
+      if(u==='kg'){u='g';q*=1000} if(u==='l'){u='ml';q*=1000}
+    }
+    const al=AISLES.find(a=>aisle&&a.toLowerCase().startsWith(aisle.toLowerCase()));
+    return [n,q,u,al||guessAisle(n)];
+  });
+}
+function guessAisle(n){n=n.toLowerCase();
+  if(/chicken|beef|turkey|pork|salmon|fish|shrimp|tuna|ham|bacon|sausage/.test(n))return 'Meat & Fish';
+  if(/milk|cheese|yogurt|egg|butter|cream|feta|parmesan|cheddar/.test(n))return 'Dairy & Eggs';
+  if(/bread|tortilla|pita|bun|bagel|wrap/.test(n))return 'Bakery';
+  if(/frozen/.test(n))return 'Frozen';
+  if(/sauce|salsa|seasoning|powder|spice|pepper flakes|oregano|cumin|paprika|soy|dressing|vinegar/.test(n))return 'Spices & Sauces';
+  if(/rice|pasta|oat|bean|lentil|flour|sugar|oil|honey|can|nut|seed|stock|broth/.test(n))return 'Pantry';
+  if(/onion|garlic|pepper|carrot|lettuce|spinach|broccoli|potato|tomato|lemon|lime|apple|banana|berr|zucchini|cucumber|herb|cilantro|parsley|kale/.test(n))return 'Produce';
+  return 'Other'}
+
+function editSheet(r){
+  const isNew=!r||!r.id;
+  r=r||{name:'',cat:'Dinner',e:'🍽️',serv:4,time:30,fridge:4,cal:500,p:35,c:50,f:15,ing:[],steps:[]};
+  openSheet(`<h2>${isNew?'New recipe':'Edit recipe'}</h2>
+  <form id="rf">
+   <div class="field"><label>Name</label><input id="fn" required value="${esc(r.name)}" placeholder="e.g. Mom's chicken curry"></div>
+   <div class="grid2"><div class="field"><label>Meal</label><select id="fc">${CATS.map(c=>`<option ${c===r.cat?'selected':''}>${c}</option>`).join('')}</select></div>
+   <div class="field"><label>Emoji</label><input id="fe" maxlength="4" value="${esc(r.e||'')}"></div></div>
+   <div class="grid2"><div class="field"><label>Cuisine</label><select id="fcu">${CUISINES.map(c=>`<option ${c===(r.cuisine||CUISINE[r.id]||'Classic')?'selected':''}>${c}</option>`).join('')}</select></div>
+   <label class="toggle field" style="margin:22px 0 0"><span>🌶️ Spicy</span><input type="checkbox" id="fsp" ${(r.spicy||SPICY.has(r.id))?'checked':''}></label></div>
+   <div class="grid4"><div class="field"><label>Servings</label><input id="fs" type="number" min="1" value="${r.serv}"></div>
+   <div class="field"><label>Minutes</label><input id="ft" type="number" min="0" value="${r.time}"></div>
+   <div class="field"><label>Fridge days</label><input id="fd" type="number" min="1" value="${r.fridge}"></div><div></div></div>
+   <div class="small muted">Per serving</div>
+   <div class="grid4"><div class="field"><label>Calories</label><input id="m1" type="number" min="0" value="${r.cal}"></div>
+   <div class="field"><label>Protein g</label><input id="m2" type="number" min="0" value="${r.p}"></div>
+   <div class="field"><label>Carbs g</label><input id="m3" type="number" min="0" value="${r.c}"></div>
+   <div class="field"><label>Fat g</label><input id="m4" type="number" min="0" value="${r.f}"></div></div>
+   <div class="field"><label>Ingredients — one per line, for the whole recipe</label><textarea id="fi" placeholder="600 g chicken breast&#10;2 cans black beans&#10;1 tbsp cumin&#10;3 bell pepper | Produce">${esc(ingToText(r.ing))}</textarea>
+   <div class="small muted" style="margin-top:4px">Format: amount, unit, name. Add “| Aisle” to set the store section (it's guessed otherwise).</div></div>
+   <div class="field"><label>Steps — one per line</label><textarea id="fst">${esc(r.steps.join('\n'))}</textarea></div>
+   <div class="row"><button type="button" class="btn grow" data-close>Cancel</button><button class="btn pri grow">Save recipe</button></div>
+  </form>`);
+  $('#rf').onsubmit=e=>{e.preventDefault();
+    const n=v=>Math.max(0,parseFloat($(v).value)||0);
+    const obj={id:isNew?'c'+Date.now().toString(36):r.id,custom:true,name:$('#fn').value.trim()||'Untitled',cat:$('#fc').value,cuisine:$('#fcu').value,spicy:$('#fsp').checked,e:$('#fe').value.trim()||'🍽️',
+      serv:Math.max(1,Math.round(n('#fs'))),time:Math.round(n('#ft')),fridge:Math.max(1,Math.round(n('#fd'))),
+      cal:Math.round(n('#m1')),p:Math.round(n('#m2')),c:Math.round(n('#m3')),f:Math.round(n('#m4')),
+      ing:parseIng($('#fi').value),steps:$('#fst').value.split('\n').map(s=>s.trim()).filter(Boolean)};
+    S.custom=S.custom||[];
+    const i=S.custom.findIndex(x=>x.id===obj.id); i>=0?S.custom[i]=obj:S.custom.push(obj);
+    save();closeSheet();tab='recipes';recFilter='Mine';render();toast('Recipe saved');
+  };
+}
+
+function settingsSheet(){
+  openSheet(`<h2>Settings</h2>
+  <div class="sec-title">Your main store</div><select class="storesel">${storeOpts()}</select>
+  <div class="sec-title">Stores to compare</div>
+  <div class="small muted" style="margin:0 4px 6px">Pick the stores you'd shop at. The grocery list compares your week at each one and can split your list so each item comes from wherever it's cheapest.</div>
+  <div class="chips">${STORES.filter(s=>s[0]!=='avg').map(s=>`<button class="chip ${(S.stores||[]).includes(s[0])?'on':''}" data-ms="${s[0]}">${s[1]}</button>`).join('')}</div>
+  <label class="toggle card" style="padding:10px 14px;margin-top:10px"><div><b>Split shop for the best prices</b><div class="small muted">Buy each item at the cheapest of your stores. Plans and budget use those prices.</div></div><input type="checkbox" id="splt" ${S.split?'checked':''}></label>
+  <div class="sec-title">Weekly grocery budget</div>
+  <div class="row"><span style="font-size:20px;font-weight:700">$</span><input id="gb" type="number" min="10" step="5" value="${S.budget}" style="font-size:18px;font-weight:600"></div>
+  <div class="sec-title">Meals to plan</div>
+  <div class="chips">${SLOTS.map(([s,l])=>`<button class="chip ${(S.slots||[]).includes(s)?'on':''}" data-sl="${s}">${l}</button>`).join('')}</div>
+  <button class="rcard" id="tastes2" style="margin-top:14px"><div class="emoji">😋</div><div class="grow"><b>Your tastes</b><div class="small muted">${tasteSummary()}</div></div>›</button>
+  <div class="sec-title">Daily targets</div>
+  <div class="grid4"><div class="field"><label>Calories</label><input id="g1" type="number" value="${S.goals.cal}"></div>
+  <div class="field"><label>Protein g</label><input id="g2" type="number" value="${S.goals.p}"></div>
+  <div class="field"><label>Carbs g</label><input id="g3" type="number" value="${S.goals.c}"></div>
+  <div class="field"><label>Fat g</label><input id="g4" type="number" value="${S.goals.f}"></div></div>
+  <div class="sec-title">Servings per meal</div>
+  <div class="small muted" style="margin:0 4px 6px">How many people eat each planned meal. Prep amounts and groceries scale to this.</div>
+  <div class="chips">${[1,2,3,4,5,6].map(n=>`<button class="chip ${S.people===n?'on':''}" data-pp="${n}">${n}</button>`).join('')}</div>
+  <div class="sec-title">Variety</div>
+  <label class="toggle card" style="padding:10px 14px"><div><b>No repeats</b><div class="small muted">Every meal is a different recipe each day. Turn off to batch-cook the same meal a few days in a row (cheaper, less cooking).</div></div><input type="checkbox" id="norep" ${S.noRepeat?'checked':''}></label>
+  <label class="toggle card" style="padding:10px 14px"><div><b>Cook once, eat twice</b><div class="small muted">Cook whole recipes instead of scaling them down. Leftovers go in your freezer when you start a new week, and get planned in later for free.</div></div><input type="checkbox" id="fullb" ${S.fullBatch?'checked':''}></label>
+  <div class="sec-title">Prep days</div>
+  <div class="small muted" style="margin:0 4px 6px">Each meal is cooked on the closest prep day before it. Two prep days (e.g. Sun + Wed) keep everything within fridge life.</div>
+  <div class="chips">${SD.map((d,i)=>`<button class="chip ${(S.prepDays||[]).includes(i)?'on':''}" data-pd="${i}">${d}</button>`).join('')}</div>
+  <div class="sec-title">Data</div>
+  <div class="small muted" style="margin:0 4px 8px" id="syncinfo"></div>
+  <div class="row" style="margin-bottom:10px"><button class="btn grow" id="bk">⬆ Back up</button><button class="btn grow" id="rs">⬇ Restore</button></div>
+  <div class="row"><button class="btn danger" id="reset">Start over</button><button class="btn pri grow" id="sv">Save</button></div>
+  <div class="small muted" style="text-align:center;margin-top:14px">Weekly Budget Meal Planner · v1.0 · Prices are estimates; check your store.</div>`);
+  $('#syncinfo').textContent=db?'Synced to your Claude account — your plan follows you across phone and computer.':'Saved on this device. Use Back up to copy your data to another phone or keep it safe.';
+  let people=S.people, pd=new Set(S.prepDays||[]);
+  document.querySelectorAll('[data-pp]').forEach(b=>b.onclick=()=>{people=+b.dataset.pp;document.querySelectorAll('[data-pp]').forEach(x=>x.classList.toggle('on',+x.dataset.pp===people))});
+  document.querySelectorAll('[data-pd]').forEach(b=>b.onclick=()=>{const i=+b.dataset.pd;pd.has(i)?pd.delete(i):pd.add(i);if(!pd.size)pd.add(i);b.classList.toggle('on',pd.has(i))});
+  $('#tastes2').onclick=()=>tasteSheet();
+  let ms=new Set(S.stores||[]);
+  document.querySelectorAll('[data-ms]').forEach(b=>b.onclick=()=>{const s=b.dataset.ms;ms.has(s)?ms.delete(s):ms.add(s);b.classList.toggle('on',ms.has(s))});
+  let sl=new Set(S.slots||[]);
+  document.querySelectorAll('[data-sl]').forEach(b=>b.onclick=()=>{const s=b.dataset.sl;sl.has(s)?sl.delete(s):sl.add(s);if(!sl.size)sl.add(s);b.classList.toggle('on',sl.has(s))});
+  $('#sv').onclick=()=>{const v=s=>Math.max(1,parseInt($(s).value)||1);
+    S.budget=Math.max(10,parseFloat($('#gb').value)||S.budget);S.store=$('.storesel').value;S.stores=STORES.map(s=>s[0]).filter(s=>ms.has(s));S.split=$('#splt').checked;
+    S.slots=SLOTS.map(x=>x[0]).filter(s=>sl.has(s));
+    Object.keys(S.plan).forEach(k=>{if(!sl.has(k.split('-')[1]))delete S.plan[k]});
+    S.goals={cal:v('#g1'),p:v('#g2'),c:v('#g3'),f:v('#g4')};S.people=people;S.prepDays=[...pd].sort();const nr=$('#norep').checked,fb=$('#fullb').checked,ch=nr!==S.noRepeat||fb!==!!S.fullBatch;S.noRepeat=nr;S.fullBatch=fb;save();closeSheet();render();toast(ch?'Settings saved · tap Re-plan week to apply':'Settings saved')};
+  $('#bk').onclick=async()=>{const t=JSON.stringify(S);try{await navigator.clipboard.writeText(t);toast('Backup copied. Paste it in a note or email to keep it')}catch(e){showText(t)}};
+  $('#rs').onclick=()=>{openSheet(`<h2>Restore a backup</h2><p class="small muted">Paste a backup you copied earlier. This replaces everything in the app.</p><textarea id="rsx" style="min-height:180px" placeholder="Paste backup here"></textarea><div class="row" style="margin-top:10px"><button class="btn grow" data-close>Cancel</button><button class="btn pri grow" id="rsgo">Restore</button></div>`);
+    $('#rsgo').onclick=()=>{try{const x=JSON.parse($('#rsx').value);if(!x||typeof x!=='object'||!x.plan)throw 0;S=normalize(x);save();closeSheet();render();toast('Backup restored')}catch(e){toast('That doesn\'t look like a backup')}}};
+  $('#reset').onclick=()=>confirmSheet('Start over?','Your plan, custom recipes, prices and settings will be erased.','Start over',()=>{S=normalize(null);save();render();onboard()});
+}
+
+/* ---------- Storage (Claude account sync, browser fallback) ---------- */
+const LS='batch-mealprep-v1';
+let db=null, ref=null, writing=false, dirty=false, wTimer=null;
+function normalize(x){const d=defaultState();const o=(!x||typeof x!=='object')?d:{...d,...x,goals:{...d.goals,...(x.goals||{})}};
+  if(!o.pantry){o.pantry={};Object.entries(PRICES).forEach(([k,v])=>{if(v[2])o.pantry[k]=1})}
+  if(!Array.isArray(o.slots)||!o.slots.length)o.slots=['B','L','D','S'];
+  if(typeof o.noRepeat!=='boolean')o.noRepeat=true;
+  o.freezer=o.freezer||[];o.frzSlots=o.frzSlots||{};o.history=o.history||[];o.fullBatch=!!o.fullBatch;o.shop=!!o.shop;
+  return o}
+function onboard(){
+  let people=S.people||1, sl=new Set(S.slots||['B','L','D','S']);
+  openSheet(`<div style="text-align:center;padding:10px 0 4px"><div class="logo" style="width:56px;height:56px;margin:0 auto 10px;border-radius:16px;display:grid;place-items:center;font-size:28px;font-weight:700">$</div>
+  <h2 style="font-size:24px">Let's plan your week</h2><p class="muted" style="margin:6px 0 0">Tell me where you shop, your budget and who's eating. I'll plan a week you can batch-cook, plus the grocery list with the total worked out.</p></div>
+  <div class="sec-title">Where you shop</div><select class="storesel">${storeOpts()}</select>
+  <div class="sec-title">Weekly grocery budget</div>
+  <div class="row"><span style="font-size:22px;font-weight:700">$</span><input id="ob" type="number" min="10" step="5" value="${S.budget}" style="font-size:20px;font-weight:700"></div>
+  <div class="sec-title">How many people?</div>
+  <div class="chips">${[1,2,3,4,5,6].map(n=>`<button class="chip ${people===n?'on':''}" data-op="${n}">${n}</button>`).join('')}</div>
+  <div class="sec-title">Which meals?</div>
+  <div class="chips">${SLOTS.map(([s,l])=>`<button class="chip ${sl.has(s)?'on':''}" data-os="${s}">${l}</button>`).join('')}</div>
+  <div style="margin-top:22px"><button class="btn pri big" id="ogo">Next: your tastes ›</button></div>
+  <div style="text-align:center;margin-top:10px"><button class="btn sm" style="border:0;background:none" id="oskip">I'll plan it myself</button></div>`);
+  document.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{people=+b.dataset.op;document.querySelectorAll('[data-op]').forEach(x=>x.classList.toggle('on',+x.dataset.op===people))});
+  document.querySelectorAll('[data-os]').forEach(b=>b.onclick=()=>{const s=b.dataset.os;sl.has(s)?sl.delete(s):sl.add(s);if(!sl.size)sl.add(s);b.classList.toggle('on',sl.has(s))});
+  const done=plan=>{S.store=$(".storesel").value;S.budget=Math.max(10,parseFloat($("#ob").value)||180);S.people=people;S.slots=SLOTS.map(x=>x[0]).filter(s=>sl.has(s));S.onboarded=true;closeSheet();tab='plan';if(plan)tasteSheet(()=>autoFill());else{save();render()}};
+  $('#ogo').onclick=()=>done(true); $('#oskip').onclick=()=>done(false);
+}
+function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
+function loadLocal(){try{const t=localStorage.getItem(LS);return t?JSON.parse(t):null}catch(e){return null}}
+function save(){saveLocal();if(ref){dirty=true;clearTimeout(wTimer);wTimer=setTimeout(flush,700)}}
+async function flush(){
+  if(!ref||writing||!dirty) return;
+  writing=true;dirty=false;setSync('Saving…');
+  try{await ref.set({json:JSON.stringify(S),updated:Date.now()});setSync('Synced')}
+  catch(e){setSync('Offline');dirty=true}
+  writing=false; if(dirty) wTimer=setTimeout(flush,1500);
+}
+function setSync(t){const p=$('#sync');p.textContent=t;p.style.display=t==='Local'?'none':''}
+async function initSync(){
+  try{
+    if(!window.claude||typeof window.claude.use!=='function'){setSync('Local');return}
+    const [d,u]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
+    if(!d||!u){setSync('Local');return}
+    const uid=await u.id(); if(!uid){setSync('Local');return}
+    const r=d.collection('data/users/'+uid).doc('mealprep');
+    const snap=await Promise.race([r.get(),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000))]);
+    let val=snap&&typeof snap.data==='function'?snap.data():snap;
+    if(val&&val.data&&!val.json&&typeof val.data==='object')val=val.data;
+    db=d;ref=r;
+    if(val&&val.json){S=normalize(JSON.parse(val.json));saveLocal();render();setSync('Synced')}
+    else{dirty=true;flush()}
+  }catch(e){setSync('Local')}
+}
+
+/* ---------- Boot ---------- */
+S=normalize(loadLocal());
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;window.scrollTo(0,0);render()});
+$('#gear').onclick=settingsSheet;
+render();
+if(!S.onboarded) onboard();
+initSync();
+if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude\.ai|claudeusercontent/.test(location.hostname)){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+</script>
+</body>
+</html>
