@@ -1033,13 +1033,15 @@ function viewShopping(){
   const items=groceries().filter(i=>!i.pantry), ch=new Set(S.checked||[]);
   const left=items.filter(i=>!ch.has(i.k)), done=items.filter(i=>ch.has(i.k));
   const leftCost=left.reduce((a,i)=>a+i.cost,0);
-  let h=`<div class="card budget row" style="position:sticky;top:64px;z-index:4"><div class="grow"><div style="font-size:13px;opacity:.8;font-weight:600">SHOPPING · ${esc((splitOn()?myStores().map(stName).join(' + '):store()[1]).toUpperCase())}</div><div style="font-size:24px;font-weight:700">${left.length} left · ~${money(leftCost)}</div></div><button class="btn sm" id="shopx" style="background:var(--lime);color:#14281c;border:0">Done</button></div>`;
+  let h=`<div class="card budget row" style="position:sticky;top:64px;z-index:4"><div class="grow"><div style="font-size:13px;opacity:.8;font-weight:600">SHOPPING · ${esc((splitOn()?myStores().map(stName).join(' + '):store()[1]).toUpperCase())}</div><div style="font-size:24px;font-weight:700">${left.length} left · ~${money(leftCost)}</div></div><button class="btn sm" id="shopx" style="background:var(--lime);color:#14281c;border:0">Done</button></div>
+  <button class="btn pri big" id="shopscan" style="margin-bottom:12px">📷 Scan item</button>`;
   if(!left.length&&items.length) h+=`<div class="card empty" style="font-size:18px">🎉 All done!</div>`;
   storeGroups(left).forEach(([st,g])=>{if(splitOn())h+=`<div class="sec-title" style="font-size:17px;color:var(--ink);margin-top:20px">🏪 ${esc(stName(st))} · ${g.length} item${g.length>1?'s':''}</div>`;
   aisles().forEach(a=>{const l=g.filter(i=>(AISLES.includes(i.a)?i.a:'Other')===a).sort((x,y)=>x.n.localeCompare(y.n));if(!l.length)return;
     h+=`<div class="sec-title" style="font-size:15px">${a}</div><div class="card" style="padding:0 14px">${l.map(i=>`<button class="shopitem" data-sk="${esc(i.k)}"><span class="box"></span><span class="grow"><b>${esc(i.n)}</b><br><span class="muted">${i.q==null?'':fmtIng(i.q,i.u,i.n)}${i.pr&&S.packs?` · ${i.npacks} pack${i.npacks>1?'s':''}`:''}</span></span><span class="muted">${i.priced?money(i.cost):''}</span></button>`).join('')}</div>`})});
   if(done.length) h+=`<details style="margin-top:14px"><summary>In cart (${done.length}) · tap to put back</summary><div class="card" style="padding:0 14px;margin-top:8px">${done.map(i=>`<button class="shopitem done" data-sk="${esc(i.k)}"><span class="box">✓</span><span class="grow">${esc(i.n)}</span></button>`).join('')}</div></details>`;
   $('#view').innerHTML=h;
+  $('#shopscan').onclick=scanSheet;
   $('#shopx').onclick=()=>{S.shop=false;save();viewGrocery()};
   document.querySelectorAll('[data-sk]').forEach(b=>b.onclick=()=>{const s=new Set(S.checked||[]);s.has(b.dataset.sk)?s.delete(b.dataset.sk):s.add(b.dataset.sk);S.checked=[...s];save();viewShopping()});
 }
@@ -1151,6 +1153,119 @@ async function loadFeed(){
   }catch(e){}
 }
 
+/* ---------- Scan & learn ---------- */
+const weekStart=()=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime()};
+const spentThisWeek=()=>(S.purchases||[]).filter(p=>p.ts>=weekStart()).reduce((a,p)=>a+(+p.paid||0),0);
+function parseQty(q,unit){ // "12 x 355 mL" / "1 kg" / "500 g" / "4 L" / "12" -> amount in the ingredient's unit
+  if(!q)return null;const s=String(q).toLowerCase().replace(',', '.');
+  let mult=1;const mm=s.match(/(\d+)\s*[x×]\s*/);if(mm)mult=+mm[1];
+  const m=s.replace(/(\d+)\s*[x×]\s*/,'').match(/([\d.]+)\s*(kg|g|ml|l|cl|lb|oz)?/);if(!m)return null;
+  let v=parseFloat(m[1])*mult,u=m[2]||'';
+  if(u==='kg'){v*=1000;u='g'}else if(u==='lb'){v*=453.6;u='g'}else if(u==='oz'){v*=28.35;u='g'}else if(u==='l'){v*=1000;u='ml'}else if(u==='cl'){v*=10;u='ml'}
+  if(unit==='g'&&u==='g'||unit==='ml'&&u==='ml')return Math.round(v);
+  if(unit==='g'&&u==='ml'||unit==='ml'&&u==='g')return Math.round(v);
+  if(!u&&!['g','ml'].includes(unit))return v;
+  return null;
+}
+function matchIngredients(name){
+  const words=String(name||'').toLowerCase().replace(/[^a-z\s]/g,' ').split(/\s+/).filter(w=>w.length>2);
+  const keys=ingredientKeys();
+  return keys.map(([k,v])=>{const iw=v.n.toLowerCase().replace(/[^a-z\s]/g,' ').split(/\s+/).filter(w=>w.length>2);
+    let sc=0;iw.forEach(w=>{if(words.some(x=>x===w||x.startsWith(w.slice(0,5))||w.startsWith(x.slice(0,5))))sc+=w.length});return {k,v,sc:sc/Math.max(4,iw.join('').length),raw:sc}})
+    .filter(x=>x.sc>0).sort((a,b)=>b.sc-a.sc||b.raw-a.raw).slice(0,6);
+}
+async function lookupBarcode(code){
+  const mem=(S.barcodes||{})[code];if(mem)return {...mem,known:true};
+  try{const r=await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=product_name,brands,quantity`);
+    if(!r.ok)return null;const j=await r.json();if(!j||!j.product||!j.product.product_name)return null;
+    return {name:[j.product.brands&&j.product.brands.split(',')[0],j.product.product_name].filter(Boolean).join(' '),qty:j.product.quantity||'',off:true}}catch(e){return null}
+}
+let scanStream=null,scanTimer=null;
+function stopScan(){if(scanTimer){clearInterval(scanTimer);scanTimer=null}if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null}}
+function scanSheet(){
+  const hasBD='BarcodeDetector' in window;
+  openSheet(`<h2>📷 Scan what you buy</h2><p class="small muted" style="margin:4px 0 10px">Point the camera at the barcode. Each scan checks it off your list, records what you paid and teaches the app your real prices.</p>
+  ${hasBD?`<div style="position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3"><video id="scv" playsinline muted style="width:100%;height:100%;object-fit:cover"></video><div style="position:absolute;left:12%;right:12%;top:40%;height:20%;border:3px solid var(--lime);border-radius:10px"></div></div>
+  <div class="small muted" id="scmsg" style="margin:6px 2px">Starting camera…</div>`:`<div class="card small">Live scanning isn't supported in this browser. Take a photo of the barcode or type the number instead.</div>`}
+  <div class="row" style="margin-top:8px"><label class="btn grow" style="text-align:center">📸 Photo of barcode<input id="scfile" type="file" accept="image/*" capture="environment" style="display:none"></label></div>
+  <div class="row" style="margin-top:8px"><input id="sccode" inputmode="numeric" placeholder="Or type the barcode number"><button class="btn pri" id="scgo">Look up</button></div>
+  <button class="btn" id="scnone" style="width:100%;margin-top:8px">No barcode (meat, produce, bakery)? Log it by name</button>
+  <button class="btn" data-close style="width:100%;margin-top:8px">Close</button>
+  <div class="small muted" style="margin-top:8px;text-align:center">Product names from <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener">Open Food Facts</a> (ODbL)</div>`);
+  document.querySelectorAll('#sheet [data-close]').forEach(b=>b.addEventListener('click',stopScan));
+  const found=code=>{stopScan();purchaseSheet(code)};
+  $('#scgo').onclick=()=>{const c=$('#sccode').value.replace(/\D/g,'');if(c.length>=6)found(c);else toast('Enter the numbers under the barcode')};
+  $('#scnone').onclick=()=>{stopScan();purchaseSheet(null)};
+  $('#scfile').onchange=async e=>{const f=e.target.files[0];if(!f)return;
+    if(!hasBD){toast('Can\'t read barcodes from photos here. Type the number instead');return}
+    try{const bd=new BarcodeDetector();const bmp=await createImageBitmap(f);const r=await bd.detect(bmp);if(r[0])found(r[0].rawValue);else toast('No barcode found in that photo. Try closer and in focus')}catch(err){toast('Couldn\'t read that photo')}};
+  if(hasBD){(async()=>{try{
+    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    const v=$('#scv');v.srcObject=scanStream;await v.play();$('#scmsg').textContent='Looking for a barcode…';
+    const bd=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128']});
+    scanTimer=setInterval(async()=>{if(!v.videoWidth)return;try{const r=await bd.detect(v);if(r[0]){if(navigator.vibrate)navigator.vibrate(60);found(r[0].rawValue)}}catch(e){}},350);
+  }catch(e){const m=$('#scmsg');if(m)m.textContent='Camera not available here. Use a photo or type the number.'}})()}
+}
+async function purchaseSheet(code){
+  openSheet(`<h2>Looking it up…</h2><p class="muted">${code?esc(code):''}</p>`);
+  const info=code?await lookupBarcode(code):null;
+  const name=info?info.name:'';
+  let pickK=info&&info.k||null;
+  const buyList=groceries().filter(i=>!i.pantry&&!i.extra);
+  const draw=(q)=>{
+    const sugg=matchIngredients(q||name);
+    const onList=sugg.filter(s=>buyList.some(i=>i.k===s.k));
+    const order=onList.concat(sugg.filter(s=>!onList.includes(s)));
+    if(!pickK&&order[0]&&order[0].sc>0.3)pickK=order[0].k;
+    const kv=pickK?new Map(ingredientKeys()).get(pickK):null;
+    const packGuess=kv?(info&&info.pack&&info.k===pickK?info.pack:(parseQty(info&&info.qty,kv.u)||(priceAt(pickK,S.store)||[kv.u==='g'||kv.u==='ml'?500:1])[0])):'';
+    const st=info&&info.store||(S.shopStore)||S.store;
+    openSheet(`<h2>${name?esc(name):'Log a purchase'}</h2>
+    <p class="small muted" style="margin:2px 0 10px">${code?`Barcode ${esc(code)} · `:''}${info&&info.known?'Remembered from last time':info&&info.off?'Found in Open Food Facts':code?'Not found. Tell me what it is and I\'ll remember it':'Pick what you bought'}</p>
+    ${name?'':`<input id="pnm" placeholder="What is it? e.g. ground beef" value="${esc(q||'')}" style="margin-bottom:8px">`}
+    <div class="small muted" style="margin:0 2px 4px">Which ingredient is this?</div>
+    <div class="chips" style="margin-bottom:6px">${order.map(s=>`<button class="chip ${s.k===pickK?'on':''}" data-pk="${esc(s.k)}">${esc(s.v.n)}${buyList.some(i=>i.k===s.k)?' ✓':''}</button>`).join('')||'<span class="small muted">No match yet. Search below.</span>'}</div>
+    <div class="row" style="margin-bottom:8px"><input id="psrch" placeholder="Search ingredients"><button class="btn sm" id="psgo">Search</button></div>
+    ${kv?`<div class="grid2"><div class="field"><label>Shelf price ($)${discPct(st)?` · before your ${discPct(st)}%`:''}</label><input id="ppr" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0.00"></div>
+    <div class="field"><label>Size (${kv.u==='pc'?'items':kv.u})</label><input id="ppk" type="number" step="any" min="0" value="${packGuess}"></div></div>
+    <div class="grid2"><div class="field"><label>Store</label><select id="pst">${STORES.filter(s=>s[0]!=='avg').map(s=>`<option value="${s[0]}" ${s[0]===st?'selected':''}>${s[1]}</option>`).join('')}</select></div>
+    <div class="field"><label>How many</label><input id="pqty" type="number" min="1" step="1" value="1"></div></div>
+    <label class="toggle" style="padding:4px 0"><span class="small">Use this as my price at this store</span><input type="checkbox" id="plearn" checked></label>`:''}
+    <div class="row" style="margin-top:10px"><button class="btn grow" data-close>Cancel</button>${kv?'<button class="btn grow" id="pmore">Save & scan next</button><button class="btn pri grow" id="psave">Save</button>':''}</div>`);
+    document.querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>{pickK=b.dataset.pk;draw(q)});
+    $('#psgo').onclick=()=>{const v=$('#psrch').value.trim();if(v){pickK=null;draw(v)}};
+    const nm=$('#pnm');if(nm)nm.onchange=()=>{pickK=null;draw(nm.value)};
+    const doSave=next=>{
+      const price=parseFloat($('#ppr').value),pack=parseFloat($('#ppk').value),qty=Math.max(1,parseInt($('#pqty').value)||1),store=$('#pst').value;
+      if(!(price>=0)||!(pack>0)){toast('Enter the price and size');return}
+      const disc=discPct(store), paid=Math.round(price*qty*(1-disc/100)*100)/100;
+      S.purchases=[{ts:Date.now(),code,name:name||(kv&&kv.n),k:pickK,store,price,pack,qty,paid}].concat(S.purchases||[]).slice(0,600);
+      if(code){S.barcodes=S.barcodes||{};S.barcodes[code]={name:name||kv.n,k:pickK,pack,store}}
+      if($('#plearn').checked){S.prices=S.prices||{};S.prices[store+'::'+pickK]=[pack,price]}
+      const ch=new Set(S.checked||[]);ch.add(pickK);S.checked=[...ch];S.shopStore=store;
+      save();toast(`Saved · ${money(paid)} at ${stName(store)}`);
+      if(next)scanSheet();else{closeSheet();render()}
+    };
+    const ps=$('#psave');if(ps)ps.onclick=()=>doSave(false);
+    const pm=$('#pmore');if(pm)pm.onclick=()=>doSave(true);
+  };
+  draw('');
+}
+function purchasesSheet(){
+  const ps=S.purchases||[], ws=weekStart();
+  const groups={};ps.forEach(p=>{const d=new Date(p.ts);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));(groups[d.getTime()]=groups[d.getTime()]||[]).push(p)});
+  const learned=Object.keys(S.prices||{}).length, codes=Object.keys(S.barcodes||{}).length;
+  const top={};ps.forEach(p=>{if(p.k)top[p.k]=(top[p.k]||0)+p.qty});
+  const names=new Map(ingredientKeys());
+  openSheet(`<h2>What you've bought</h2>
+  <div class="stats"><div class="stat"><b>${money(spentThisWeek())}</b><span>Spent this week</span></div><div class="stat"><b>${learned}</b><span>Prices learned</span></div><div class="stat"><b>${codes}</b><span>Products known</span></div></div>
+  ${Object.keys(top).length?`<div class="card small"><b>You buy most:</b> ${Object.entries(top).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,n])=>esc((names.get(k)||{n:k}).n)+' ×'+n).join(' · ')}</div>`:''}
+  ${Object.keys(groups).sort((a,b)=>b-a).slice(0,8).map(t=>{const l=groups[t];return `<div class="sec-title">${weekLabel(+t)} · ${money(l.reduce((a,p)=>a+p.paid,0))}</div><div class="card" style="padding:4px 12px">${l.map(p=>`<div class="gitem"><div class="grow" style="min-width:0"><b>${esc(p.name||'Item')}</b><div class="small muted">${esc(stName(p.store))} · ${p.qty>1?p.qty+' × ':''}${money(p.price)}${p.code?' · scanned':''}</div></div><span class="gq">${money(p.paid)}</span><button class="swap" data-delp="${p.ts}">✕</button></div>`).join('')}</div>`}).join('')||'<div class="card empty">Nothing yet. Tap 📷 Scan at the store or when you unpack groceries.</div>'}
+  <div class="row" style="margin-top:8px"><button class="btn grow" data-close>Close</button><button class="btn pri grow" id="pscan">📷 Scan</button></div>`);
+  $('#pscan').onclick=scanSheet;
+  document.querySelectorAll('[data-delp]').forEach(b=>b.onclick=()=>{S.purchases=(S.purchases||[]).filter(p=>String(p.ts)!==b.dataset.delp);save();purchasesSheet()});
+}
+
 /* ---------- Views ---------- */
 function render(){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
@@ -1178,6 +1293,7 @@ function viewPlan(){
     <div style="font-size:28px;font-weight:700;letter-spacing:-.02em">${money(cost)} <span style="font-size:14px;opacity:.75;font-weight:500">of ${money(S.budget)} budget</span></div></div>
     <button class="btn sm" id="bud" style="background:transparent;color:inherit;border-color:rgba(255,255,255,.3)">Edit</button></div>
     <div class="t"><i class="${over?'over':''}" style="width:${pct}%"></i></div>
+    ${spentThisWeek()>0?`<div style="font-size:13px;margin-top:8px;font-weight:600">🧾 Spent so far: ${money(spentThisWeek())} · ${spentThisWeek()<=S.budget?money(S.budget-spentThisWeek())+' left in budget':money(spentThisWeek()-S.budget)+' over budget'}</div>`:''}
     <div style="font-size:12px;opacity:.8;margin-top:6px">${S.planNote&&planned.length?esc(S.planNote)+'<br>':''}${over?`${money(cost-S.budget)} over. Swap a meal (↻) or re-plan.`:planned.length?`${money(S.budget-cost)} left · ${S.packs?'store pack sizes':'exact amounts'}${unpriced?` · ${unpriced} item${unpriced>1?'s':''} without a price`:''}`:'Plan your week to see the total'}</div></div>
   <div class="toolbar">
     <button class="btn pri" id="auto">✨ ${planned.length?'Re-plan week':'Plan my week'}</button>
@@ -1255,7 +1371,7 @@ function viewGrocery(){
   const buy=items.filter(i=>!i.pantry), have=items.filter(i=>i.pantry);
   const left=buy.filter(i=>!checked.has(i.k)).length;
   const total=buy.reduce((a,i)=>a+i.cost,0), spent=buy.filter(i=>checked.has(i.k)).reduce((a,i)=>a+i.cost,0);
-  let h=`<div class="toolbar"><button class="btn pri" id="shop">🛒 Shopping mode</button><button class="btn" id="copy">Copy list</button><button class="btn" id="aorder">↕ Store order</button><button class="btn" id="addx">+ Add item</button><button class="btn" id="uncheck">Uncheck all</button></div>`;
+  let h=`<div class="toolbar"><button class="btn pri" id="shop">🛒 Shopping mode</button><button class="btn pri" id="scan">📷 Scan</button><button class="btn" id="bought">🧾 Bought</button><button class="btn" id="copy">Copy list</button><button class="btn" id="aorder">↕ Store order</button><button class="btn" id="addx">+ Add item</button><button class="btn" id="uncheck">Uncheck all</button></div>`;
   if(!items.length){$('#view').innerHTML=h+`<div class="card empty">Your grocery list builds itself from your plan.<br>Add meals on the Plan tab.</div>`;bindGro();return}
   h+=`<div class="stats"><div class="stat"><b>${money(total)}</b><span>Estimated total</span></div><div class="stat"><b>${money(spent)}</b><span>In cart</span></div><div class="stat"><b>${left}</b><span>Items left</span></div></div>
   <div class="toggle card" style="padding:10px 14px"><div><b>Store pack sizes</b><div class="small muted">Price whole packs, the way you actually buy them</div></div><input type="checkbox" id="packs" ${S.packs?'checked':''}></div>
@@ -1293,6 +1409,7 @@ function viewGrocery(){
       try{await navigator.clipboard.writeText(txt);toast('List copied')}catch(e){showText(txt)}
     };
     $('#uncheck').onclick=()=>{S.checked=[];save();viewGrocery()};
+    $('#scan').onclick=scanSheet;$('#bought').onclick=purchasesSheet;
     $('#shop').onclick=()=>{S.shop=true;save();window.scrollTo(0,0);viewGrocery()};
     $('#aorder').onclick=aisleSheet;
     $('#addx').onclick=()=>{
@@ -1550,7 +1667,7 @@ function normalize(x){const d=defaultState();const o=(!x||typeof x!=='object')?d
   if(!o.pantry){o.pantry={};Object.entries(PRICES).forEach(([k,v])=>{if(v[2])o.pantry[k]=1})}
   if(!Array.isArray(o.slots)||!o.slots.length)o.slots=['B','L','D','S'];
   if(typeof o.noRepeat!=='boolean')o.noRepeat=true;
-  o.freezer=o.freezer||[];o.frzSlots=o.frzSlots||{};o.history=o.history||[];o.fullBatch=!!o.fullBatch;o.shop=!!o.shop;o.swaps=o.swaps||{};o.storeBrand=!!o.storeBrand;o.deals=o.deals||[];o.discounts=o.discounts||{};o.leftoverLunch=!!o.leftoverLunch;
+  o.freezer=o.freezer||[];o.frzSlots=o.frzSlots||{};o.history=o.history||[];o.fullBatch=!!o.fullBatch;o.shop=!!o.shop;o.swaps=o.swaps||{};o.storeBrand=!!o.storeBrand;o.deals=o.deals||[];o.purchases=o.purchases||[];o.barcodes=o.barcodes||{};o.discounts=o.discounts||{};o.leftoverLunch=!!o.leftoverLunch;
   return o}
 function onboard(){
   let people=S.people||1, sl=new Set(S.slots||['B','L','D','S']);
