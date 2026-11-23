@@ -83,7 +83,10 @@ nav button.on{color:var(--brand)}
 .slot .meal .meta{font-size:12px;color:var(--muted)}
 .add{color:var(--brand);font-weight:600}
 .warnic{color:var(--warn);font-size:12px;font-weight:600}
-.bars{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.bars{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}
+.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.grid5 .stat{padding:8px}
+.grid5 .stat b{font-size:16px}
 .bar{font-size:11px;color:var(--muted)}
 .bar .t{height:6px;border-radius:9px;background:var(--line);overflow:hidden;margin-top:4px}
 .bar .t i{display:block;height:100%;border-radius:9px}
@@ -616,7 +619,35 @@ Object.assign(PRICES,{'breakfast cereal|g':[525,5],'instant oatmeal packets|pc':
 'refried beans|can':[1,1.8],'instant ramen|pc':[5,3],'wieners|pc':[12,4],'hot dog buns|pc':[8,3.5],'baked beans|can':[1,1.5],'chicken drumsticks|g':[1500,9],
 'bbq sauce|ml':[455,3.5],'granola bars|pc':[6,3],'yogurt cups|pc':[16,6],'popcorn kernels|g':[900,4]});
 
-function defaultState(){return{v:2,goals:{cal:2200,p:160,c:220,f:70},people:1,prepDays:[6],plan:{},custom:[],checked:[],extras:[],
+// ---- Sodium (mg) per unit of each ingredient: estimates from typical Canadian/US label & nutrient-database values ----
+const NA={
+'all-purpose flour|tbsp':0,'apples|pc':2,'baby spinach|g':.79,'bacon|g':.85,'bagels|pc':450,'baked beans|can':1400,'baking powder|tsp':480,'baking soda|tsp':1260,'bananas|pc':1,
+'basil pesto|ml':7,'bbq sauce|ml':8,'beef broth|ml':3.5,'beef gravy mix|pkg':1400,'beef stir-fry strips|g':.6,'bell pepper|pc':5,'black beans|can':1000,'boneless pork chops|g':.55,
+'breadcrumbs|g':7.3,'breakfast cereal|g':4.5,'broccoli|g':.33,'brown lentils|g':.06,'brown sugar|tbsp':3,'brownie mix|pkg':2000,'butter chicken sauce|jar':2200,'butter|tbsp':90,
+'cajun seasoning|tbsp':2500,'canned tuna|can':300,'carrots|pc':42,'celery|bunch':400,'cheddar block|g':6.5,'cheddar, shredded|g':6.5,'cheese strings|pc':200,'cherry tomatoes|g':.05,
+'chia seeds|tbsp':2,'chicken breast|g':.6,'chicken broth|ml':3.5,'chicken drumsticks|g':.9,'chicken gravy mix|pkg':1400,'chicken thighs, bone-in|g':.9,'chicken thighs, boneless|g':.9,
+'chickpeas|can':900,'chili powder|tbsp':150,'chocolate chips|g':.2,'cinnamon|tsp':0,'cocoa powder|tbsp':1,'coconut milk|can':50,'cod fillets|g':.7,'coleslaw mix|g':.2,'corn kernels|g':.1,
+'cornstarch|tbsp':1,'cottage cheese|g':3.6,'cream cheese|g':3.2,'creamed corn|can':1100,'crispy rice cereal|g':6,'cucumber|pc':6,'curry powder|tbsp':3,'custard powder|tbsp':10,
+'deli ham|g':11,'deli turkey|g':10,'diced tomatoes|can':700,'dinner rolls|pc':150,'dried oregano|tsp':0,'egg noodles|g':.2,'egg roll wrappers|pc':120,'eggs|pc':70,'enchilada sauce|can':1800,
+'english muffins|pc':230,'feta|g':9.2,'firm tofu|g':.1,'frozen cauliflower rice|g':.3,'frozen edamame|g':.06,'frozen hash browns|g':3,'frozen meatballs|g':7,'frozen peas & carrots|g':.7,
+'frozen peas|g':1,'frozen pierogies|g':4,'frozen shrimp|g':5,'frozen stir-fry vegetables|g':.3,'frozen waffles|pc':230,'garlic powder|tsp':2,'garlic|clove':1,'graham crumbs|g':4.5,
+'granola bars|pc':80,'granola|g':2,'grapes|g':.02,'greek yogurt (plain)|g':.36,'green beans|g':.06,'green cabbage|head':160,'green onions|bunch':16,'ground cumin|tsp':4,'ground ginger|tsp':1,
+'ground pork|g':.6,'hamburger buns|pc':200,'honey|tbsp':1,'hot dog buns|pc':200,'hummus|g':4.3,'icing sugar|g':0,'instant oatmeal packets|pc':250,'instant ramen|pc':1600,'italian sausage|g':7.5,
+'italian seasoning|tsp':1,'ketchup|ml':9,'kidney beans|can':1000,'kielbasa|g':9,'large tortillas|pc':500,'lasagna noodles|g':.06,'lean ground beef|g':.7,'lean ground turkey|g':.8,'lemon|pc':1,
+'light caesar dressing|ml':9,'light mayonnaise|ml':8,'lime|pc':1,'maple syrup|tbsp':2,'marinara sauce|jar':2500,'marshmallows|g':.8,'milk|ml':.45,'mini bagels|pc':190,'mixed berries|g':.01,
+'mixed nuts|g':3,'mozzarella block|g':6.3,'mozzarella, shredded|g':6.3,'mushrooms|g':.05,'mustard|tbsp':170,'olive oil|tbsp':0,'onion|pc':4,'orange|pc':0,'orzo|g':.1,'oyster sauce|tbsp':490,
+'pancake mix|g':12,'pancake syrup|tbsp':25,'paprika|tsp':2,'parmesan|g':16,'pasta (dry)|g':.06,'peameal bacon|g':10,'peanut butter|g':4.3,'pepperoni slices|g':17,'pepperoni sticks|pc':450,
+'pie crust|pkg':1800,'pita bread|pc':320,'pizza sauce|ml':4.5,'plum sauce|ml':6,'popcorn kernels|g':.08,'pork breakfast sausage|g':8,'pork shoulder|g':.75,'pork side ribs|g':.8,
+'pork tenderloin|g':.55,'potatoes|g':.06,'quinoa|g':.05,'raisins|g':.1,'ranch dressing|ml':9,'red cabbage|head':150,'red lentils|g':.07,'red onion|pc':4,'refried beans|can':2100,
+'rice (dry)|g':.05,'rice noodles|g':.2,'rolled oats|g':.06,'romaine lettuce|head':50,'salmon fillets|g':.6,'salsa|ml':7,'sandwich bread|pc':140,'sesame oil|tbsp':0,'sesame seeds|tbsp':1,
+'shredded coconut|g':.2,'sliced almonds|g':.01,'smoked salmon|g':7,'sour cream|ml':.35,'soy sauce|ml':55,'steamed chow mein noodles|g':1,'stewing beef|g':.6,'sub buns|pc':400,'sugar|tbsp':0,
+'sweet & sour sauce|jar':1600,'sweet chili sauce|ml':7,'sweet potatoes|g':.55,'taco seasoning|tbsp':1100,'taco shells|pc':30,'tart shells|pc':70,'teriyaki sauce|ml':30,'tomato soup|can':1800,
+'turkey breakfast sausage|g':7,'turmeric|tsp':1,'vegetable broth|ml':3,'vegetable oil|tbsp':0,'whipping cream|ml':.4,'whole grain crackers|g':7.5,'wieners|pc':500,
+'yogurt (plain, large tub)|g':.5,'yogurt cups|pc':50,'zucchini|pc':16};
+// Estimated sodium per serving from the ingredients actually used (after swaps/skips); excludes salt you add yourself
+function naOf(r){if(r.na!=null&&r.na!=='')return +r.na;let t=0;ingUsed(r).forEach(([n,q,u])=>{t+=(NA[ikey(n,u)]||0)*q});return Math.round(t/r.serv/10)*10}
+
+function defaultState(){return{v:2,goals:{cal:2200,p:160,c:220,f:70,na:2300},people:1,prepDays:[6],plan:{},custom:[],checked:[],extras:[],
   budget:180,store:'avg',packs:true,prices:{},pantry:null,slots:['B','L','D','S'],onboarded:false,taste:{diet:'any',pref:{},never:''},rpref:{}}}
 let S=defaultState();
 let tab='plan', recFilter='All', recQuery='';
@@ -710,6 +741,7 @@ const GOALS=[
  ['healthy','🥗','Healthy',r=>r.cal<=550&&r.f*9/Math.max(r.cal,1)<=.35&&r.ing.filter(i=>i[3]==='Produce').length>=2&&!PROCESSED.test(ingText(r))],
  ['lowcarb','🥦','Low carb',r=>r.c*4/Math.max(r.cal,1)<=.3],
  ['lowfat','🍋','Low fat',r=>r.f*9/Math.max(r.cal,1)<=.25],
+ ['lowsodium','🧂','Lower sodium',r=>naOf(r)<=(r.cat==='Snack'||r.cat==='Dessert'?200:r.cat==='Breakfast'?450:700)],
  ['lowcal','🪶','Low calorie',r=>r.cat==='Snack'||r.cat==='Dessert'?r.cal<=200:r.cal<=450],
  ['lowsugar','🫐','Lower sugar',r=>!SWEET.test(ingText(r))],
  ['fibre','🫘','High fibre',r=>FIBRE.test(ingText(r))],
@@ -791,8 +823,8 @@ function slotWarn(d,s){
   return gap>r.fridge?{gap,p,fridge:r.fridge}:null;
 }
 function dayTotals(d){
-  const t={cal:0,p:0,c:0,f:0};
-  SLOTS.forEach(([s])=>{const r=rec(S.plan[key(d,s)]);if(r){t.cal+=r.cal;t.p+=r.p;t.c+=r.c;t.f+=r.f}});
+  const t={cal:0,p:0,c:0,f:0,na:0};
+  SLOTS.forEach(([s])=>{const r=rec(S.plan[key(d,s)]);if(r){t.cal+=r.cal;t.p+=r.p;t.c+=r.c;t.f+=r.f;t.na+=naOf(r)}});
   return t;
 }
 function sessions(){
@@ -1274,9 +1306,9 @@ function render(){
   ({plan:viewPlan,prep:viewPrep,grocery:viewGrocery,recipes:viewRecipes})[tab]();
 }
 
-function bar(label,val,goal,color){
-  const pct=Math.min(100,goal?val/goal*100:0);
-  return `<div class="bar">${label} <b style="color:var(--ink)">${Math.round(val)}</b>/${goal}<div class="t"><i style="width:${pct}%;background:${color}"></i></div></div>`;
+function bar(label,val,goal,color,limit){
+  const pct=Math.min(100,goal?val/goal*100:0), over=limit&&val>goal;
+  return `<div class="bar">${label} <b style="color:${over?'var(--warn)':'var(--ink)'}">${Math.round(val)}</b>/${goal}<div class="t"><i style="width:${pct}%;background:${over?'var(--warn)':color}"></i></div></div>`;
 }
 
 function viewPlan(){
@@ -1317,10 +1349,10 @@ function viewPlan(){
     slots.forEach(([s,lab])=>{
       const r=rec(S.plan[key(d,s)]); const w=slotWarn(d,s);
       h+=`<div class="slot"><div class="lab">${lab}</div><button class="meal" data-slot="${d}|${s}">${r?
-        `<div class="nm">${r.e||'🍽️'} ${esc(r.name)}${(S.rpref||{})[r.id]===1?' 👍':''}${S.leftoverLunch&&s==='L'&&S.plan[key((d+6)%7,'D')]===r.id?' <span class="tag">Leftovers</span>':''}</div><div class="meta">${isFrz(key(d,s))?'<span style="color:var(--p);font-weight:600">🧊 From your freezer · free</span> · thaw the night before':`${r.cal} cal · ${r.p}g protein · ${money(servCost(r))}`}${w?` · <span class="warnic">⚠ ${w.gap} days old — freeze</span>`:''}</div>`
+        `<div class="nm">${r.e||'🍽️'} ${esc(r.name)}${(S.rpref||{})[r.id]===1?' 👍':''}${S.leftoverLunch&&s==='L'&&S.plan[key((d+6)%7,'D')]===r.id?' <span class="tag">Leftovers</span>':''}</div><div class="meta">${isFrz(key(d,s))?'<span style="color:var(--p);font-weight:600">🧊 From your freezer · free</span> · thaw the night before':`${r.cal} cal · ${r.p}g protein · ${naOf(r)} mg Na · ${money(servCost(r))}`}${w?` · <span class="warnic">⚠ ${w.gap} days old — freeze</span>`:''}</div>`
         :`<span class="add">+ Add ${lab.toLowerCase()}</span>`}</button>${r?`<button class="swap" data-swap="${d}|${s}" aria-label="Swap meal">↻</button>`:''}</div>`;
     });
-    if(t.cal) h+=`<div class="bars">${bar('Cal',t.cal,S.goals.cal,'var(--accent)')}${bar('P',t.p,S.goals.p,'var(--p)')}${bar('C',t.c,S.goals.c,'var(--c)')}${bar('F',t.f,S.goals.f,'var(--f)')}</div>`;
+    if(t.cal) h+=`<div class="bars">${bar('Cal',t.cal,S.goals.cal,'var(--accent)')}${bar('P',t.p,S.goals.p,'var(--p)')}${bar('C',t.c,S.goals.c,'var(--c)')}${bar('F',t.f,S.goals.f,'var(--f)')}${bar('Na',t.na,S.goals.na||2300,'#7c8aa0',true)}</div>`;
     h+=`</div>`;
   }
   $('#view').innerHTML=h;
@@ -1489,7 +1521,7 @@ function viewRecipes(){
 }
 function recCard(r,attr='data-r',extra=''){
   return `<button class="rcard" ${attr}="${r.id}"><div class="emoji">${r.e||'🍽️'}</div><div class="grow" style="min-width:0"><b>${esc(r.name)}</b>${extra}
-  <div class="macros"><span><b>${r.cal}</b> cal</span><span><b>${r.p}g</b> P</span><span><b>${r.c}g</b> C</span><span><b>${r.f}g</b> F</span></div>
+  <div class="macros"><span><b>${r.cal}</b> cal</span><span><b>${r.p}g</b> P</span><span><b>${r.c}g</b> C</span><span><b>${r.f}g</b> F</span><span><b>${naOf(r)}</b> mg Na</span></div>
   <div class="small muted">${r.cat} · ${money(servCost(r))}/serving · ${r.time} min · fridge ${r.fridge}d${r.custom?' · yours':''}</div>${goalHits(r).slice(0,3).map(g=>`<span class="tag">${g[1]} ${g[2]}</span>`).join('')}${hasDeal(r)?'<span class="tag" style="background:var(--warn-bg);color:var(--accent)">🔥 On sale</span>':''}${liked(r)&&allowed(r)?'<span class="tag">👍 You like this</span>':''}${!allowed(r)?`<span class="tag w">Not for you · ${esc(whyNot(r))}</span>`:''}</div></button>`;
 }
 
@@ -1528,7 +1560,8 @@ function pickSheet(d,s){
 function detailSheet(id){
   const r=rec(id); if(!r) return;
   openSheet(`<div class="row"><div class="emoji">${r.e||'🍽️'}</div><div class="grow"><h2>${esc(r.name)}</h2><div class="small muted">${r.cat} · ${r.serv} servings · ${r.time} min · keeps ${r.fridge} days in fridge</div></div></div>
-  <div class="grid4" style="margin:14px 0">${[['Cal',r.cal,''],['Protein',r.p,'g'],['Carbs',r.c,'g'],['Fat',r.f,'g']].map(([l,v,u])=>`<div class="stat"><b>${v}${u}</b><span>${l} / serving</span></div>`).join('')}</div>
+  <div class="grid5" style="margin:14px 0 4px">${[['Cal',r.cal,''],['Protein',r.p,'g'],['Carbs',r.c,'g'],['Fat',r.f,'g'],['Sodium',naOf(r),'mg']].map(([l,v,u])=>`<div class="stat"><b>${v}${u}</b><span>${l}</span></div>`).join('')}</div>
+  <div class="small muted" style="margin:0 2px 12px">Per serving. Sodium is estimated from the ingredients and doesn't include salt you add.${naOf(r)>(S.goals.na||2300)*0.4?' <b style="color:var(--warn)">High in sodium.</b>':''}</div>
   <div class="sec-title" style="margin-top:4px">Ingredients</div><div class="card small"><ul style="margin:0;padding-left:18px">${r.ing.map(i=>{const [n,q,u]=i,sk=skipped(r).includes(i);return `<li style="${sk?'text-decoration:line-through;opacity:.55':''}">${fmtIng(q,u,n)} ${esc(n)}${sk?' (leaving out)':''}</li>`}).join('')}</ul></div>
   <div class="sec-title">Steps</div><div class="card small"><ol class="steps">${r.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol></div>
   <div class="row" style="margin-bottom:10px"><button class="btn grow" id="rl" style="${(S.rpref||{})[r.id]===1?'background:var(--brand-2);border-color:var(--p);color:var(--p)':''}">👍 ${(S.rpref||{})[r.id]===1?'Loved':'Love it'}</button><button class="btn grow" id="rn" style="${(S.rpref||{})[r.id]===-1?'background:var(--warn-bg);border-color:var(--warn);color:var(--warn)':''}">👎 ${(S.rpref||{})[r.id]===-1?'Never planned':'Never plan'}</button></div>
@@ -1587,6 +1620,7 @@ function editSheet(r){
    <div class="field"><label>Protein g</label><input id="m2" type="number" min="0" value="${r.p}"></div>
    <div class="field"><label>Carbs g</label><input id="m3" type="number" min="0" value="${r.c}"></div>
    <div class="field"><label>Fat g</label><input id="m4" type="number" min="0" value="${r.f}"></div></div>
+   <div class="field"><label>Sodium mg per serving (leave blank to estimate from ingredients)</label><input id="m5" type="number" min="0" value="${r.na!=null?r.na:''}"></div>
    <div class="field"><label>Ingredients — one per line, for the whole recipe</label><textarea id="fi" placeholder="600 g chicken breast&#10;2 cans black beans&#10;1 tbsp cumin&#10;3 bell pepper | Produce">${esc(ingToText(r.ing))}</textarea>
    <div class="small muted" style="margin-top:4px">Format: amount, unit, name. Add “| Aisle” to set the store section (it's guessed otherwise).</div></div>
    <div class="field"><label>Steps — one per line</label><textarea id="fst">${esc(r.steps.join('\n'))}</textarea></div>
@@ -1596,7 +1630,7 @@ function editSheet(r){
     const n=v=>Math.max(0,parseFloat($(v).value)||0);
     const obj={id:isNew?'c'+Date.now().toString(36):r.id,custom:true,name:$('#fn').value.trim()||'Untitled',cat:$('#fc').value,cuisine:$('#fcu').value,spicy:$('#fsp').checked,e:$('#fe').value.trim()||'🍽️',
       serv:Math.max(1,Math.round(n('#fs'))),time:Math.round(n('#ft')),fridge:Math.max(1,Math.round(n('#fd'))),
-      cal:Math.round(n('#m1')),p:Math.round(n('#m2')),c:Math.round(n('#m3')),f:Math.round(n('#m4')),
+      cal:Math.round(n('#m1')),p:Math.round(n('#m2')),c:Math.round(n('#m3')),f:Math.round(n('#m4')),na:$('#m5').value===''?null:Math.round(n('#m5')),
       ing:parseIng($('#fi').value),steps:$('#fst').value.split('\n').map(s=>s.trim()).filter(Boolean)};
     S.custom=S.custom||[];
     const i=S.custom.findIndex(x=>x.id===obj.id); i>=0?S.custom[i]=obj:S.custom.push(obj);
@@ -1624,6 +1658,7 @@ function settingsSheet(){
   <div class="field"><label>Protein g</label><input id="g2" type="number" value="${S.goals.p}"></div>
   <div class="field"><label>Carbs g</label><input id="g3" type="number" value="${S.goals.c}"></div>
   <div class="field"><label>Fat g</label><input id="g4" type="number" value="${S.goals.f}"></div></div>
+  <div class="field"><label>Sodium limit (mg / day) · Health Canada suggests under 2300</label><input id="g5" type="number" step="100" value="${S.goals.na||2300}"></div>
   <div class="sec-title">Servings per meal</div>
   <div class="small muted" style="margin:0 4px 6px">How many people eat each planned meal. Prep amounts and groceries scale to this.</div>
   <div class="chips">${[1,2,3,4,5,6].map(n=>`<button class="chip ${S.people===n?'on':''}" data-pp="${n}">${n}</button>`).join('')}</div>
@@ -1653,7 +1688,7 @@ function settingsSheet(){
     S.budget=Math.max(10,parseFloat($('#gb').value)||S.budget);S.store=$('.storesel').value;S.stores=STORES.map(s=>s[0]).filter(s=>ms.has(s));S.split=$('#splt').checked;S.discounts={};document.querySelectorAll('[data-dsc]').forEach(c=>{const st=c.dataset.dsc,p=parseFloat(document.querySelector(`[data-dpc="${st}"]`).value)||0;if(c.checked||p!==10)S.discounts[st]={on:c.checked,pct:p}});
     S.slots=SLOTS.map(x=>x[0]).filter(s=>sl.has(s));
     Object.keys(S.plan).forEach(k=>{if(!sl.has(k.split('-')[1]))delete S.plan[k]});
-    S.goals={cal:v('#g1'),p:v('#g2'),c:v('#g3'),f:v('#g4')};S.people=people;S.prepDays=[...pd].sort();const nr=$('#norep').checked,fb=$('#fullb').checked,lol=$('#lolset').checked,ch=nr!==S.noRepeat||fb!==!!S.fullBatch||lol!==!!S.leftoverLunch;S.noRepeat=nr;S.fullBatch=fb;S.leftoverLunch=lol;S.storeBrand=$('#sbset').checked;save();closeSheet();render();toast(ch?'Settings saved · tap Re-plan week to apply':'Settings saved')};
+    S.goals={cal:v('#g1'),p:v('#g2'),c:v('#g3'),f:v('#g4'),na:v('#g5')};S.people=people;S.prepDays=[...pd].sort();const nr=$('#norep').checked,fb=$('#fullb').checked,lol=$('#lolset').checked,ch=nr!==S.noRepeat||fb!==!!S.fullBatch||lol!==!!S.leftoverLunch;S.noRepeat=nr;S.fullBatch=fb;S.leftoverLunch=lol;S.storeBrand=$('#sbset').checked;save();closeSheet();render();toast(ch?'Settings saved · tap Re-plan week to apply':'Settings saved')};
   $('#bk').onclick=async()=>{const t=JSON.stringify(S);try{await navigator.clipboard.writeText(t);toast('Backup copied. Paste it in a note or email to keep it')}catch(e){showText(t)}};
   $('#rs').onclick=()=>{openSheet(`<h2>Restore a backup</h2><p class="small muted">Paste a backup you copied earlier. This replaces everything in the app.</p><textarea id="rsx" style="min-height:180px" placeholder="Paste backup here"></textarea><div class="row" style="margin-top:10px"><button class="btn grow" data-close>Cancel</button><button class="btn pri grow" id="rsgo">Restore</button></div>`);
     $('#rsgo').onclick=()=>{try{const x=JSON.parse($('#rsx').value);if(!x||typeof x!=='object'||!x.plan)throw 0;S=normalize(x);save();closeSheet();render();toast('Backup restored')}catch(e){toast('That doesn\'t look like a backup')}}};
@@ -1667,6 +1702,7 @@ function normalize(x){const d=defaultState();const o=(!x||typeof x!=='object')?d
   if(!o.pantry){o.pantry={};Object.entries(PRICES).forEach(([k,v])=>{if(v[2])o.pantry[k]=1})}
   if(!Array.isArray(o.slots)||!o.slots.length)o.slots=['B','L','D','S'];
   if(typeof o.noRepeat!=='boolean')o.noRepeat=true;
+  if(!o.goals.na)o.goals.na=2300;
   o.freezer=o.freezer||[];o.frzSlots=o.frzSlots||{};o.history=o.history||[];o.fullBatch=!!o.fullBatch;o.shop=!!o.shop;o.swaps=o.swaps||{};o.storeBrand=!!o.storeBrand;o.deals=o.deals||[];o.purchases=o.purchases||[];o.barcodes=o.barcodes||{};o.discounts=o.discounts||{};o.leftoverLunch=!!o.leftoverLunch;
   return o}
 function onboard(){
