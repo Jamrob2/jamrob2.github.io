@@ -1352,7 +1352,7 @@ function viewPlan(){
         `<div class="nm">${r.e||'🍽️'} ${esc(r.name)}${(S.rpref||{})[r.id]===1?' 👍':''}${S.leftoverLunch&&s==='L'&&S.plan[key((d+6)%7,'D')]===r.id?' <span class="tag">Leftovers</span>':''}</div><div class="meta">${isFrz(key(d,s))?'<span style="color:var(--p);font-weight:600">🧊 From your freezer · free</span> · thaw the night before':`${r.cal} cal · ${r.p}g protein · ${naOf(r)} mg Na · ${money(servCost(r))}`}${w?` · <span class="warnic">⚠ ${w.gap} days old — freeze</span>`:''}</div>`
         :`<span class="add">+ Add ${lab.toLowerCase()}</span>`}</button>${r?`<button class="swap" data-swap="${d}|${s}" aria-label="Swap meal">↻</button>`:''}</div>`;
     });
-    if(t.cal) h+=`<div class="bars">${bar('Cal',t.cal,S.goals.cal,'var(--accent)')}${bar('P',t.p,S.goals.p,'var(--p)')}${bar('C',t.c,S.goals.c,'var(--c)')}${bar('F',t.f,S.goals.f,'var(--f)')}${bar('Na',t.na,S.goals.na||2300,'#7c8aa0',true)}</div>`;
+    if(t.cal) h+=`<div class="bars">${bar('Cal',t.cal,S.goals.cal,'var(--accent)')}${bar('P',t.p,S.goals.p,'var(--p)')}${bar('C',t.c,S.goals.c,'var(--c)')}${bar('F',t.f,S.goals.f,'var(--f)')}${bar('Sodium',t.na,S.goals.na||2300,'#7c8aa0',true)}</div>`;
     h+=`</div>`;
   }
   $('#view').innerHTML=h;
@@ -1674,7 +1674,7 @@ function settingsSheet(){
   <div class="small muted" style="margin:0 4px 8px" id="syncinfo"></div>
   <div class="row" style="margin-bottom:10px"><button class="btn grow" id="bk">⬆ Back up</button><button class="btn grow" id="rs">⬇ Restore</button></div>
   <div class="row"><button class="btn danger" id="reset">Start over</button><button class="btn pri grow" id="sv">Save</button></div>
-  <div class="small muted" style="text-align:center;margin-top:14px">Weekly Budget Meal Planner · v1.0 · Prices are estimates; check your store.</div>`);
+  <div class="small muted" style="text-align:center;margin-top:14px">Weekly Budget Meal Planner · v1.6 (sodium) · Prices are estimates; check your store.<br><button class="btn sm" id="updnow" style="margin-top:8px">↻ Check for updates</button></div>`);
   $('#syncinfo').textContent=db?'Synced to your Claude account — your plan follows you across phone and computer.':'Saved on this device. Use Back up to copy your data to another phone or keep it safe.';
   let people=S.people, pd=new Set(S.prepDays||[]);
   document.querySelectorAll('[data-pp]').forEach(b=>b.onclick=()=>{people=+b.dataset.pp;document.querySelectorAll('[data-pp]').forEach(x=>x.classList.toggle('on',+x.dataset.pp===people))});
@@ -1689,6 +1689,7 @@ function settingsSheet(){
     S.slots=SLOTS.map(x=>x[0]).filter(s=>sl.has(s));
     Object.keys(S.plan).forEach(k=>{if(!sl.has(k.split('-')[1]))delete S.plan[k]});
     S.goals={cal:v('#g1'),p:v('#g2'),c:v('#g3'),f:v('#g4'),na:v('#g5')};S.people=people;S.prepDays=[...pd].sort();const nr=$('#norep').checked,fb=$('#fullb').checked,lol=$('#lolset').checked,ch=nr!==S.noRepeat||fb!==!!S.fullBatch||lol!==!!S.leftoverLunch;S.noRepeat=nr;S.fullBatch=fb;S.leftoverLunch=lol;S.storeBrand=$('#sbset').checked;save();closeSheet();render();toast(ch?'Settings saved · tap Re-plan week to apply':'Settings saved')};
+  $('#updnow').onclick=async()=>{try{const rs=navigator.serviceWorker?await navigator.serviceWorker.getRegistrations():[];for(const r of rs)await r.unregister();if(window.caches){for(const k of await caches.keys())await caches.delete(k)}}catch(e){}location.reload()};
   $('#bk').onclick=async()=>{const t=JSON.stringify(S);try{await navigator.clipboard.writeText(t);toast('Backup copied. Paste it in a note or email to keep it')}catch(e){showText(t)}};
   $('#rs').onclick=()=>{openSheet(`<h2>Restore a backup</h2><p class="small muted">Paste a backup you copied earlier. This replaces everything in the app.</p><textarea id="rsx" style="min-height:180px" placeholder="Paste backup here"></textarea><div class="row" style="margin-top:10px"><button class="btn grow" data-close>Cancel</button><button class="btn pri grow" id="rsgo">Restore</button></div>`);
     $('#rsgo').onclick=()=>{try{const x=JSON.parse($('#rsx').value);if(!x||typeof x!=='object'||!x.plan)throw 0;S=normalize(x);save();closeSheet();render();toast('Backup restored')}catch(e){toast('That doesn\'t look like a backup')}}};
@@ -1758,7 +1759,7 @@ render();
 if(!S.onboarded) onboard();
 initSync();
 loadFeed();
-if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude\.ai|claudeusercontent/.test(location.hostname)){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude\.ai|claudeusercontent/.test(location.hostname)){navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});let rl=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!rl){rl=true;location.reload()}})}
 </script>
 </body>
 </html>
