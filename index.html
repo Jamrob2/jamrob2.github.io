@@ -1138,7 +1138,7 @@ function dealsCard(){
   const ds=allDeals(), names=new Map(ingredientKeys());
   return `<div class="card"><div class="row"><b class="grow">🔥 Flyer deals${ds.length?` (${ds.length})`:''}</b><button class="btn sm pri" id="adddeal">+ Add deal</button></div>
   <div class="small muted" style="margin:6px 0">Add sales from this week's flyers. Your list uses the sale price, and <b>Re-plan week</b> favours meals that use them.${(S.discounts&&Object.values(S.discounts).some(d=>d.on))?' Store discounts are applied on top.':''}</div>
-  ${ds.map(d=>{const it=names.get(d.k);return `<div class="row" style="padding:6px 0;border-top:1px solid var(--line)"><span class="grow"><b>${esc(it?it.n:d.k)}</b><div class="small muted">${esc(stName(d.store))} · ${money(d.price)} for ${it?fmtIng(d.pack,it.u,it.n):d.pack}${d.until?` · until ${d.until.slice(5)}`:''}${d.feed?' · weekly feed':''}</div></span>${d.feed?'':`<button class="swap" data-deldeal="${d.id}">✕</button>`}</div>`}).join('')}
+  ${ds.map(d=>{const it=names.get(d.k);return `<div class="row" style="padding:6px 0;border-top:1px solid var(--line)"><span class="grow"><b>${esc(it?it.n:d.k)}</b><div class="small muted">${esc(stName(d.store))} · ${money(d.price)} for ${it?fmtIng(d.pack,it.u,it.n):d.pack}${d.until?` · until ${d.until.slice(5)}`:''}${d.feed?' · weekly feed':''}</div></span><button class="btn sm" data-dmeals="${esc(d.k)}" style="margin-right:6px">Meals ›</button>${d.feed?'':`<button class="swap" data-deldeal="${d.id}">✕</button>`}</div>`}).join('')}
   <div class="small" style="margin-top:8px">Find this week's sales: <a href="https://flipp.com" target="_blank" rel="noopener">Flipp</a> (flipp.com) shows Walmart, No Frills, Food Basics, Metro and more in one place.</div></div>`;
 }
 function dealSheet(){
@@ -1173,6 +1173,7 @@ function dealSheet(){
 }
 function bindDeals(){
   const a=$('#adddeal');if(a)a.onclick=dealSheet;
+  document.querySelectorAll('[data-dmeals]').forEach(b=>b.onclick=()=>dealMealsSheet(b.dataset.dmeals));
   document.querySelectorAll('[data-deldeal]').forEach(b=>b.onclick=()=>{S.deals=(S.deals||[]).filter(d=>d.id!==b.dataset.deldeal);save();viewGrocery()});
 }
 // Optional weekly feed: a deals.json file next to the app (e.g. on GitHub Pages)
@@ -1349,8 +1350,8 @@ function viewPlan(){
     slots.forEach(([s,lab])=>{
       const r=rec(S.plan[key(d,s)]); const w=slotWarn(d,s);
       h+=`<div class="slot"><div class="lab">${lab}</div><button class="meal" data-slot="${d}|${s}">${r?
-        `<div class="nm">${r.e||'🍽️'} ${esc(r.name)}${(S.rpref||{})[r.id]===1?' 👍':''}${S.leftoverLunch&&s==='L'&&S.plan[key((d+6)%7,'D')]===r.id?' <span class="tag">Leftovers</span>':''}</div><div class="meta">${isFrz(key(d,s))?'<span style="color:var(--p);font-weight:600">🧊 From your freezer · free</span> · thaw the night before':`${r.cal} cal · ${r.p}g protein · ${naOf(r)} mg Na · ${money(servCost(r))}`}${w?` · <span class="warnic">⚠ ${w.gap} days old — freeze</span>`:''}</div>`
-        :`<span class="add">+ Add ${lab.toLowerCase()}</span>`}</button>${r?`<button class="swap" data-swap="${d}|${s}" aria-label="Swap meal">↻</button>`:''}</div>`;
+        `<div class="nm">${r.e||'🍽️'} ${esc(r.name)}${(S.rpref||{})[r.id]===1?' 👍':''}${S.leftoverLunch&&s==='L'&&S.plan[key((d+6)%7,'D')]===r.id?' <span class="tag">Leftovers</span>':''}${hasDeal(r)?' <span class="tag" style="background:var(--warn-bg);color:var(--accent)">🔥</span>':''}</div><div class="meta">${isFrz(key(d,s))?'<span style="color:var(--p);font-weight:600">🧊 From your freezer · free</span> · thaw the night before':`${r.cal} cal · ${r.p}g protein · ${naOf(r)} mg Na · ${money(servCost(r))}`}${w?` · <span class="warnic">⚠ ${w.gap} days old — freeze</span>`:''}</div>`
+        :`<span class="add">+ Add ${lab.toLowerCase()}</span>`}</button>${r?'<button class="swap" data-chg="'+d+'|'+s+'" aria-label="Change meal" title="Change">✎</button>':''}${r?`<button class="swap" data-swap="${d}|${s}" aria-label="Swap meal">↻</button>`:''}</div>`;
     });
     if(t.cal) h+=`<div class="bars">${bar('Cal',t.cal,S.goals.cal,'var(--accent)')}${bar('P',t.p,S.goals.p,'var(--p)')}${bar('C',t.c,S.goals.c,'var(--c)')}${bar('F',t.f,S.goals.f,'var(--f)')}${bar('Sodium',t.na,S.goals.na||2300,'#7c8aa0',true)}</div>`;
     h+=`</div>`;
@@ -1360,6 +1361,7 @@ function viewPlan(){
   $('#clear').onclick=()=>confirmSheet('Clear the whole week?','All planned meals will be removed. Your recipes stay.','Clear week',()=>{S.plan={};S.frzSlots={};S.checked=[];S.planNote='';save();render()});
   if($('#rate'))$('#rate').onclick=rateSheet; if($('#nweek'))$('#nweek').onclick=newWeekSheet; $('#hist').onclick=historySheet;
   document.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{const [d,s]=b.dataset.slot.split('|');pickSheet(+d,s)});
+  document.querySelectorAll('[data-chg]').forEach(b=>b.onclick=()=>{const [d,s]=b.dataset.chg.split('|');pickSheet(+d,s)});
   document.querySelectorAll('[data-swap]').forEach(b=>b.onclick=()=>{const [d,s]=b.dataset.swap.split('|');swapMeal(+d,s)});
   $('#bud').onclick=settingsSheet;
 }
@@ -1539,22 +1541,58 @@ function showText(txt){openSheet(`<h2>Copy your list</h2><p class="small muted">
 function pickSheet(d,s){
   const lab=SLOTS.find(x=>x[0]===s)[1];
   const cur=S.plan[key(d,s)];
-  let showAll=false;
+  let mode='best', q='';
   const base=weekCost();
   const trial=id=>{const sv=S.plan[key(d,s)];S.plan[key(d,s)]=id;const c=weekCost();if(sv)S.plan[key(d,s)]=sv;else delete S.plan[key(d,s)];return{c,d:c-base}};
   const usedOn=id=>{const ds=[];for(let i=0;i<7;i++)SLOTS.forEach(([x])=>{if(!(i===d&&x===s)&&S.plan[key(i,x)]===id&&!ds.includes(SD[i]))ds.push(SD[i])});return ds.join(', ')};
   const draw=()=>{
-    const list=allRecipes().filter(r=>showAll||(r.cat===lab&&allowed(r))).sort((a,b)=>(allowed(b)-allowed(a))||(liked(b)-liked(a)));
+    let pool=allRecipes().filter(r=>r.id!==cur&&(mode==='everything'||r.cat===lab)&&(mode==='everything'||allowed(r)));
+    if(q)pool=pool.filter(r=>r.name.toLowerCase().includes(q));
+    const T={};pool.forEach(r=>T[r.id]=trial(r.id));
+    if(mode==='deal')pool=pool.filter(hasDeal);
+    if(mode==='fav')pool=pool.filter(liked);
+    const score=r=>(hasDeal(r)?4:0)+(liked(r)?3:0)+((S.rpref||{})[r.id]===1?3:0)+goalHits(r).length*2+(T[r.id].c<=S.budget?3:-6)+(usedOn(r.id)?-4:2)-T[r.id].d*0.4;
+    if(mode==='cheap')pool.sort((a,b)=>T[a.id].d-T[b.id].d);
+    else if(mode==='best'||mode==='deal'||mode==='fav')pool.sort((a,b)=>score(b)-score(a));
+    else pool.sort((a,b)=>(allowed(b)-allowed(a))||a.name.localeCompare(b.name));
+    const list=mode==='best'?pool.slice(0,8):pool;
+    const c=rec(cur);
+    const chip=(m,l)=>`<button class="chip ${mode===m?'on':''}" data-mode="${m}">${l}</button>`;
     openSheet(`<h2>${DAYS[d]} · ${lab}</h2>
-    <div class="row" style="margin:8px 0 12px"><button class="chip ${!showAll?'on':''}" id="c1">${lab} recipes</button><button class="chip ${showAll?'on':''}" id="c2">All recipes</button></div>
-    ${list.map(r=>{const t=trial(r.id);return recCard(r,'data-pick',`<div class="small" style="font-weight:600;color:${t.c>S.budget?'var(--warn)':'var(--p)'}">${t.d>=0?'+':'−'}${money(Math.abs(t.d))} to week${t.c>S.budget?' · over budget':''}</div>${usedOn(r.id)?`<span class="tag w">Already on ${usedOn(r.id)}</span>`:''}`)}).join('')||'<div class="empty">No recipes here yet.</div>'}
+    ${c?`<div class="card row" style="padding:10px 12px;margin:8px 0"><div class="emoji">${c.e||'🍽️'}</div><div class="grow" style="min-width:0"><div class="small muted">Now planned</div><b>${esc(c.name)}</b>${hasDeal(c)?' <span class="tag" style="background:var(--warn-bg);color:var(--accent)">🔥 On sale</span>':''}</div><button class="btn sm" id="viewcur">View</button></div>`:''}
+    <div class="small muted" style="margin:10px 2px 6px">${c?'Change it to:':'Pick a meal:'}</div>
+    <div class="chips" style="margin-bottom:8px">${chip('best','⭐ Best picks')}${chip('deal','🔥 On sale')}${chip('cheap','💲 Cheapest')}${chip('fav','👍 Favourites')}${chip('all','All '+lab.toLowerCase()+'s')}${chip('everything','Everything')}</div>
+    <input id="pq" placeholder="Search ${lab.toLowerCase()}s" value="${esc(q)}" style="margin-bottom:10px">
+    ${mode==='best'?'<div class="small muted" style="margin:-4px 2px 8px">Ranked for you: sale items, your likes and goals, fits your budget, not already this week.</div>':''}
+    ${list.map(r=>{const t=T[r.id];return recCard(r,'data-pick',`<div class="small" style="font-weight:600;color:${t.c>S.budget?'var(--warn)':'var(--p)'}">${t.d>=0?'+':'−'}${money(Math.abs(t.d))} to week${t.c>S.budget?' · over budget':''}</div>${usedOn(r.id)?`<span class="tag w">Already on ${usedOn(r.id)}</span>`:''}`)}).join('')||`<div class="empty">${mode==='deal'?'No meals use this week\'s sale items yet. Add deals on the Groceries tab.':mode==='fav'?'No favourites yet. Tap 👍 on recipes you love.':'No matches.'}</div>`}
+    ${mode==='best'&&pool.length>8?`<button class="btn" id="morepk" style="width:100%;margin-bottom:8px">See all ${pool.length} options</button>`:''}
     <div class="row" style="margin-top:8px">${cur?`<button class="btn danger grow" id="rm">Remove meal</button>${S.noRepeat?'':'<button class="btn grow" id="cpy">Use for rest of week</button>'}`:''}<button class="btn grow" data-close>Close</button></div>`);
-    $('#c1').onclick=()=>{showAll=false;draw()};$('#c2').onclick=()=>{showAll=true;draw()};
-    document.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const u=usedOn(b.dataset.pick);S.plan[key(d,s)]=b.dataset.pick;if(S.frzSlots)delete S.frzSlots[key(d,s)];save();closeSheet();render();const c=weekCost();if(S.noRepeat&&u)toast(`Heads up: this is already planned on ${u}`);else if(c>S.budget)toast(`Heads up: that puts you ${money(c-S.budget)} over budget`)});
+    document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;draw()});
+    const pq=$('#pq');pq.oninput=()=>{q=pq.value.toLowerCase();if(mode==='best'&&q)mode='all';draw();const f=$('#pq');f.focus();f.setSelectionRange(q.length,q.length)};
+    const mp=$('#morepk');if(mp)mp.onclick=()=>{mode='all';draw()};
+    const vc=$('#viewcur');if(vc)vc.onclick=()=>detailSheet(cur);
+    document.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const u=usedOn(b.dataset.pick);S.plan[key(d,s)]=b.dataset.pick;if(S.frzSlots)delete S.frzSlots[key(d,s)];save();closeSheet();render();const c=weekCost();if(S.noRepeat&&u)toast(`Heads up: this is already planned on ${u}`);else if(c>S.budget)toast(`Heads up: that puts you ${money(c-S.budget)} over budget`);else toast(`${rec(b.dataset.pick).name} on ${SD[d]} · week ${money(c)}`)});
     if(cur){$('#rm').onclick=()=>{delete S.plan[key(d,s)];if(S.frzSlots)delete S.frzSlots[key(d,s)];save();closeSheet();render()};
       if($('#cpy'))$('#cpy').onclick=()=>{for(let i=d;i<7;i++)S.plan[key(i,s)]=cur;save();closeSheet();render();toast(`${lab} set through Sunday`)}}
   };
   draw();
+}
+// Meals you can make with a sale item, and a quick way to put one in the plan
+function dealMealsSheet(k){
+  const it=new Map(ingredientKeys()).get(k)||{n:k};
+  const list=allRecipes().filter(r=>allowed(r)&&ingUsed(r).some(([n,,u])=>ikey(n,u)===k)).sort((a,b)=>(liked(b)-liked(a))||(goalHits(b).length-goalHits(a).length));
+  openSheet(`<h2>🔥 Meals with ${esc(it.n)}</h2><p class="small muted" style="margin:4px 0 10px">Tap one to choose which day it goes on.</p>
+  ${list.map(r=>recCard(r,'data-dm')).join('')||'<div class="empty">None of your recipes use this (or they\'re ruled out by your tastes).</div>'}
+  <button class="btn" data-close style="width:100%">Close</button>`);
+  document.querySelectorAll('[data-dm]').forEach(b=>b.onclick=()=>daySheet(b.dataset.dm,()=>dealMealsSheet(k)));
+}
+function daySheet(rid,back){
+  const r=rec(rid), s=(SLOTS.find(x=>x[1]===r.cat)||SLOTS[2])[0];
+  openSheet(`<h2>Put ${esc(r.name)} on…</h2><p class="small muted" style="margin:4px 0 10px">${r.cat}. Replaces what's planned that day.</p>
+  ${[0,1,2,3,4,5,6].map(d=>{const c=rec(S.plan[key(d,s)]);return `<button class="rcard" data-day="${d}"><div class="grow"><b>${DAYS[d]}</b><div class="small muted">${c?'Now: '+esc(c.name):'Nothing planned'}</div></div>›</button>`}).join('')}
+  <div class="row"><button class="btn grow" id="dback">Back</button><button class="btn grow" data-close>Close</button></div>`);
+  $('#dback').onclick=back;
+  document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{const d=+b.dataset.day;S.plan[key(d,s)]=rid;if(S.frzSlots)delete S.frzSlots[key(d,s)];if(!(S.slots||[]).includes(s))S.slots=(S.slots||[]).concat(s);save();closeSheet();tab='plan';render();toast(`${r.name} on ${DAYS[d]} · week ${money(weekCost())}`)});
 }
 
 function detailSheet(id){
@@ -1674,7 +1712,7 @@ function settingsSheet(){
   <div class="small muted" style="margin:0 4px 8px" id="syncinfo"></div>
   <div class="row" style="margin-bottom:10px"><button class="btn grow" id="bk">⬆ Back up</button><button class="btn grow" id="rs">⬇ Restore</button></div>
   <div class="row"><button class="btn danger" id="reset">Start over</button><button class="btn pri grow" id="sv">Save</button></div>
-  <div class="small muted" style="text-align:center;margin-top:14px">Weekly Budget Meal Planner · v1.6 (sodium) · Prices are estimates; check your store.<br><button class="btn sm" id="updnow" style="margin-top:8px">↻ Check for updates</button></div>`);
+  <div class="small muted" style="text-align:center;margin-top:14px">Weekly Budget Meal Planner · v1.7 · Prices are estimates; check your store.<br><button class="btn sm" id="updnow" style="margin-top:8px">↻ Check for updates</button></div>`);
   $('#syncinfo').textContent=db?'Synced to your Claude account — your plan follows you across phone and computer.':'Saved on this device. Use Back up to copy your data to another phone or keep it safe.';
   let people=S.people, pd=new Set(S.prepDays||[]);
   document.querySelectorAll('[data-pp]').forEach(b=>b.onclick=()=>{people=+b.dataset.pp;document.querySelectorAll('[data-pp]').forEach(x=>x.classList.toggle('on',+x.dataset.pp===people))});
